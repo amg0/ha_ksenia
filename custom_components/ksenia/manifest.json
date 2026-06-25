@@ -1,0 +1,13 @@
+{
+  "domain": "ksenia",
+  "name": "Ksenia Lares",
+  "codeowners": [
+    "@amg0"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/amg0/ha_ksenia",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/amg0/ha_ksenia/issues",
+  "version": "0.1.0"
+}
