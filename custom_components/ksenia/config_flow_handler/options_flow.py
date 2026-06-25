@@ -1,8 +1,8 @@
 """
 Options flow for ksenia.
 
-This module implements the options flow that allows users to modify settings
-after the initial configuration, such as update intervals and debug settings.
+Allows users to modify the polling refresh period and the system PIN
+after the initial configuration.
 
 For more information:
 https://developers.home-assistant.io/docs/config_entries_options_flow_handler
@@ -20,11 +20,9 @@ class KseniaLaresOptionsFlow(config_entries.OptionsFlow):
     """
     Handle options flow for the integration.
 
-    This class manages the options that users can modify after initial setup,
-    such as update intervals and debug settings.
-
-    The options flow always starts with async_step_init and provides a single
-    form for all configurable options.
+    Allows configuring:
+    - refresh_period: Zone status polling interval (seconds)
+    - pin: Encrypted system PIN for scenario execution (secret)
 
     For more information:
     https://developers.home-assistant.io/docs/config_entries_options_flow_handler
@@ -36,9 +34,6 @@ class KseniaLaresOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.ConfigFlowResult:
         """
         Manage the options for the integration.
-
-        This is the entry point for the options flow, allowing users to
-        configure advanced settings like update interval and debugging.
 
         Args:
             user_input: The user input from the options form, or None for initial display.

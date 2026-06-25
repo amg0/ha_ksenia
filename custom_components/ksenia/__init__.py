@@ -1,13 +1,8 @@
 """
 Custom integration to integrate ksenia with Home Assistant.
 
-This integration demonstrates best practices for:
-- Config flow setup (user, reconfigure, reauth)
-- DataUpdateCoordinator pattern for efficient data fetching
-- Multiple platform types (sensor, binary_sensor, switch, select, number)
-- Service registration and handling
-- Device and entity management
-- Proper error handling and recovery
+Connects to the Ksenia Lares alarm panel over the local network,
+fetching zone data to expose motion detection sensors.
 
 For more details about this integration, please refer to:
 https://github.com/amg0/ha_ksenia
@@ -21,13 +16,13 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import KseniaLaresApiClient
-from .const import DOMAIN, LOGGER
+from .const import CONF_REFRESH_PERIOD, DEFAULT_REFRESH_PERIOD, DOMAIN, LOGGER
 from .coordinator import KseniaLaresDataUpdateCoordinator
 from .data import KseniaLaresData
 from .service_actions import async_setup_services
@@ -39,12 +34,6 @@ if TYPE_CHECKING:
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
-    Platform.BUTTON,
-    Platform.FAN,
-    Platform.NUMBER,
-    Platform.SELECT,
-    Platform.SENSOR,
-    Platform.SWITCH,
 ]
 
 # This integration is configured via config entries only
@@ -55,13 +44,8 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """
     Set up the integration.
 
-    This is called once at Home Assistant startup to register service actions.
-    Service actions must be registered here (not in async_setup_entry) to ensure:
-    - Service action validation works correctly
-    - Service actions are available even without config entries
-    - Helpful error messages are provided
-
-    This is a Silver Quality Scale requirement.
+    Registers service actions at startup. Services must be registered here
+    (not in async_setup_entry) to satisfy the Silver Quality Scale requirement.
 
     Args:
         hass: The Home Assistant instance.
@@ -70,8 +54,6 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     Returns:
         True if setup was successful.
 
-    For more information:
-    https://developers.home-assistant.io/docs/dev_101_services
     """
     await async_setup_services(hass)
     return True
@@ -84,23 +66,16 @@ async def async_setup_entry(
     """
     Set up this integration using UI.
 
-    This is called when a config entry is loaded. It:
-    1. Creates the API client with credentials from the config entry
-    2. Initializes the DataUpdateCoordinator for data fetching
-    3. Performs the first data refresh
-    4. Sets up all platforms (sensors, switches, etc.)
-    5. Registers services
-    6. Sets up reload listener for config changes
+    Creates the API client using the host + credentials from the config entry,
+    then initialises the coordinator with the configured refresh period from
+    options (defaulting to DEFAULT_REFRESH_PERIOD seconds).
 
-    Data flow in this integration:
-    1. User enters username/password in config flow (config_flow.py)
-    2. Credentials stored in entry.data[CONF_USERNAME/CONF_PASSWORD]
-    3. API Client initialized with credentials (api/client.py)
-    4. Coordinator fetches data using authenticated client (coordinator/base.py)
-    5. Entities access data via self.coordinator.data (sensor/, binary_sensor/, etc.)
-
-    This pattern ensures credentials from setup flow are used throughout
-    the integration's lifecycle for API communication.
+    Data flow:
+      1. User enters host/username/password in config flow
+      2. Credentials stored in entry.data
+      3. API Client initialised with host + credentials
+      4. Coordinator fetches zone descriptions (once) then polls zone statuses
+      5. Binary sensor entities read zone data from coordinator.data
 
     Args:
         hass: The Home Assistant instance.
@@ -109,34 +84,31 @@ async def async_setup_entry(
     Returns:
         True if setup was successful.
 
-    For more information:
-    https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
     """
-    # Initialize client first
+    refresh_period = entry.options.get(CONF_REFRESH_PERIOD, DEFAULT_REFRESH_PERIOD)
+
     client = KseniaLaresApiClient(
-        username=entry.data[CONF_USERNAME],  # From config flow setup
-        password=entry.data[CONF_PASSWORD],  # From config flow setup
+        host=entry.data[CONF_HOST],
+        username=entry.data[CONF_USERNAME],
+        password=entry.data[CONF_PASSWORD],
         session=async_get_clientsession(hass),
     )
 
-    # Initialize coordinator with config_entry
     coordinator = KseniaLaresDataUpdateCoordinator(
         hass=hass,
         logger=LOGGER,
         name=DOMAIN,
         config_entry=entry,
-        update_interval=timedelta(hours=1),
-        always_update=False,  # Only update entities when data actually changes
+        update_interval=timedelta(seconds=refresh_period),
     )
 
-    # Store runtime data
     entry.runtime_data = KseniaLaresData(
         client=client,
         integration=async_get_loaded_integration(hass, entry.domain),
         coordinator=coordinator,
     )
 
-    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
+    # Performs zone description fetch (_async_setup) then first zone status poll
     await coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -152,12 +124,6 @@ async def async_unload_entry(
     """
     Unload a config entry.
 
-    This is called when the integration is being removed or reloaded.
-    It ensures proper cleanup of:
-    - All platform entities
-    - Registered services
-    - Update listeners
-
     Args:
         hass: The Home Assistant instance.
         entry: The config entry being unloaded.
@@ -165,8 +131,6 @@ async def async_unload_entry(
     Returns:
         True if unload was successful.
 
-    For more information:
-    https://developers.home-assistant.io/docs/config_entries_index/#unloading-entries
     """
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
@@ -176,16 +140,11 @@ async def async_reload_entry(
     entry: KseniaLaresConfigEntry,
 ) -> None:
     """
-    Reload config entry.
-
-    This is called when the integration configuration or options have changed.
-    It unloads and then reloads the integration with the new configuration.
+    Reload config entry when options change.
 
     Args:
         hass: The Home Assistant instance.
         entry: The config entry being reloaded.
 
-    For more information:
-    https://developers.home-assistant.io/docs/config_entries_index/#reloading-entries
     """
     await hass.config_entries.async_reload(entry.entry_id)

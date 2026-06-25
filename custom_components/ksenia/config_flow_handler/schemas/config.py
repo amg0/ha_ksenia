@@ -2,14 +2,9 @@
 Config flow schemas.
 
 Schemas for the main configuration flow steps:
-- User setup
-- Reconfiguration
-- Reauthentication
-
-When this file grows too large (>300 lines), consider splitting into:
-- user.py: User setup schemas
-- reauth.py: Reauthentication schemas
-- reconfigure.py: Reconfiguration schemas
+- User setup (host + credentials)
+- Reconfiguration (credentials only)
+- Reauthentication (credentials only)
 """
 
 from __future__ import annotations
@@ -19,7 +14,7 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
 
 
@@ -27,16 +22,26 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     """
     Get schema for user step (initial setup).
 
+    Collects the controller IP/host and user credentials.
+
     Args:
         defaults: Optional dictionary of default values to pre-populate the form.
 
     Returns:
-        Voluptuous schema for user credentials input.
+        Voluptuous schema for host + credentials input.
 
     """
     defaults = defaults or {}
     return vol.Schema(
         {
+            vol.Required(
+                CONF_HOST,
+                default=defaults.get(CONF_HOST, vol.UNDEFINED),
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(
+                    type=selector.TextSelectorType.TEXT,
+                ),
+            ),
             vol.Required(
                 CONF_USERNAME,
                 default=defaults.get(CONF_USERNAME, vol.UNDEFINED),
@@ -57,6 +62,8 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
 def get_reconfigure_schema(username: str) -> vol.Schema:
     """
     Get schema for reconfigure step.
+
+    Allows updating the credentials only (not the host).
 
     Args:
         username: Current username to pre-fill in the form.

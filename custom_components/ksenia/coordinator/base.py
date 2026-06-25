@@ -1,9 +1,9 @@
 """
 Core DataUpdateCoordinator implementation for ksenia.
 
-This module contains the main coordinator class that manages data fetching
-and updates for all entities in the integration. It handles refresh cycles,
-error handling, and triggers reauthentication when needed.
+The coordinator fetches zone descriptions once during _async_setup()
+(which runs before the first data refresh) and then only polls
+zone statuses on each subsequent update.
 
 For more information on coordinators:
 https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
@@ -11,28 +11,27 @@ https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from datetime import timedelta
+from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api import KseniaLaresApiClientAuthenticationError, KseniaLaresApiClientError
 from custom_components.ksenia.const import LOGGER
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+from .coordinator_data import KseniaLaresCoordinatorData, KseniaLaresZone
+
 if TYPE_CHECKING:
     from custom_components.ksenia.data import KseniaLaresConfigEntry
 
 
-class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator):
+class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordinatorData]):
     """
-    Class to manage fetching data from the API.
+    Class to manage fetching data from the Ksenia Lares alarm panel.
 
-    This coordinator handles all data fetching for the integration and distributes
-    updates to all entities. It manages:
-    - Periodic data updates based on update_interval
-    - Error handling and recovery
-    - Authentication failure detection and reauthentication triggers
-    - Data distribution to all entities
-    - Context-based data fetching (only fetch data for active entities)
+    Two-phase data fetching:
+      1. _async_setup(): Fetches zone descriptions once to discover all zones.
+      2. _async_update_data(): Polls zone statuses on each refresh interval.
 
     For more information:
     https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
@@ -43,80 +42,125 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator):
 
     config_entry: KseniaLaresConfigEntry
 
+    def __init__(
+        self,
+        hass,
+        logger,
+        name: str,
+        config_entry: KseniaLaresConfigEntry,
+        update_interval: timedelta,
+    ) -> None:
+        """
+        Initialize the coordinator.
+
+        Args:
+            hass: The Home Assistant instance.
+            logger: Logger to use for debug/warning messages.
+            name: Name for this coordinator.
+            config_entry: The config entry being coordinated.
+            update_interval: How often to refresh zone statuses.
+
+        """
+        super().__init__(
+            hass=hass,
+            logger=logger,
+            name=name,
+            config_entry=config_entry,
+            update_interval=update_interval,
+            always_update=False,
+        )
+        # Zone descriptions, populated during _async_setup
+        self._zone_descriptions: list[str] = []
+
     async def _async_setup(self) -> None:
         """
-        Set up the coordinator.
+        Fetch zone descriptions once at coordinator startup.
 
-        This method is called automatically during async_config_entry_first_refresh()
-        and is the ideal place for one-time initialization tasks such as:
-        - Loading device information
-        - Setting up event listeners
-        - Initializing caches
-
-        This runs before the first data fetch, ensuring any required setup
-        is complete before entities start requesting data.
-        """
-        # Example: Fetch device info once at startup
-        # device_info = await self.config_entry.runtime_data.client.get_device_info()
-        # self._device_id = device_info["id"]
-        LOGGER.debug("Coordinator setup complete for %s", self.config_entry.entry_id)
-
-    async def _async_update_data(self) -> Any:
-        """
-        Fetch data from API endpoint.
-
-        This is the only method that should be implemented in a DataUpdateCoordinator.
-        It is called automatically based on the update_interval.
-
-        Context-based fetching:
-        The coordinator tracks which entities are currently listening via async_contexts().
-        This allows optimizing API calls to only fetch data that's actually needed.
-        For example, if only sensor entities are enabled, we can skip fetching switch data.
-
-        The API client uses the credentials from config_entry to authenticate:
-        - username: from config_entry.data["username"]
-        - password: from config_entry.data["password"]
-
-        Expected API response structure (example):
-        {
-            "userId": 1,      # Used as device identifier
-            "id": 1,          # Data record ID
-            "title": "...",   # Additional metadata
-            "body": "...",    # Additional content
-            # In production, would include:
-            # "air_quality": {"aqi": 45, "pm25": 12.3},
-            # "filter": {"life_remaining": 75, "runtime_hours": 324},
-            # "settings": {"fan_speed": "medium", "humidity": 55}
-        }
-
-        Returns:
-            The data from the API as a dictionary.
+        This runs automatically during async_config_entry_first_refresh(),
+        before the first data fetch. It discovers all configured zones
+        by their descriptions so entities can be created with proper names.
 
         Raises:
-            ConfigEntryAuthFailed: If authentication fails, triggers reauthentication.
-            UpdateFailed: If data fetching fails for other reasons, optionally with retry_after.
-        """
-        try:
-            # Optional: Get active entity contexts to optimize data fetching
-            # listening_contexts = set(self.async_contexts())
-            # LOGGER.debug("Active entity contexts: %s", listening_contexts)
+            ConfigEntryAuthFailed: If authentication fails.
+            UpdateFailed: If zone descriptions cannot be fetched.
 
-            # Fetch data from API
-            # In production, you could pass listening_contexts to optimize the API call:
-            # return await self.config_entry.runtime_data.client.async_get_data(listening_contexts)
-            return await self.config_entry.runtime_data.client.async_get_data()
+        """
+        client = self.config_entry.runtime_data.client
+        try:
+            self._zone_descriptions = await client.async_get_zone_descriptions()
+            LOGGER.debug(
+                "Fetched %d zone descriptions for %s",
+                len(self._zone_descriptions),
+                self.config_entry.entry_id,
+            )
         except KseniaLaresApiClientAuthenticationError as exception:
-            LOGGER.warning("Authentication error - %s", exception)
+            LOGGER.warning("Authentication error during zone description fetch - %s", exception)
             raise ConfigEntryAuthFailed(
                 translation_domain="ksenia",
                 translation_key="authentication_failed",
             ) from exception
         except KseniaLaresApiClientError as exception:
-            LOGGER.exception("Error communicating with API")
-            # If the API provides rate limit information, you can honor it:
-            # if hasattr(exception, 'retry_after'):
-            #     raise UpdateFailed(retry_after=exception.retry_after) from exception
+            LOGGER.exception("Error fetching zone descriptions")
             raise UpdateFailed(
                 translation_domain="ksenia",
                 translation_key="update_failed",
             ) from exception
+
+    @property
+    def zone_descriptions(self) -> list[str]:
+        """Return the list of zone descriptions fetched at setup."""
+        return self._zone_descriptions
+
+    async def _async_update_data(self) -> KseniaLaresCoordinatorData:
+        """
+        Poll zone statuses from the Ksenia Lares panel.
+
+        Called automatically on each update_interval tick. Updates the
+        status and bypass state for every zone. Zone descriptions remain
+        unchanged from the initial setup fetch.
+
+        Returns:
+            KseniaLaresCoordinatorData containing updated zone list.
+
+        Raises:
+            ConfigEntryAuthFailed: If authentication fails (triggers reauth).
+            UpdateFailed: If status polling fails (auto-retry).
+
+        """
+        client = self.config_entry.runtime_data.client
+        try:
+            statuses = await client.async_get_zone_statuses()
+        except KseniaLaresApiClientAuthenticationError as exception:
+            LOGGER.warning("Authentication error during zone status update - %s", exception)
+            raise ConfigEntryAuthFailed(
+                translation_domain="ksenia",
+                translation_key="authentication_failed",
+            ) from exception
+        except KseniaLaresApiClientError as exception:
+            LOGGER.exception("Error communicating with API during zone status update")
+            raise UpdateFailed(
+                translation_domain="ksenia",
+                translation_key="update_failed",
+            ) from exception
+
+        zones: list[KseniaLaresZone] = []
+        for idx, description in enumerate(self._zone_descriptions):
+            if idx < len(statuses):
+                zone_status = statuses[idx]
+                zones.append(
+                    KseniaLaresZone(
+                        index=idx,
+                        description=description,
+                        status=zone_status.get("status", "UNKNOWN"),
+                        bypass=zone_status.get("bypass", "UNKNOWN"),
+                    )
+                )
+            else:
+                zones.append(
+                    KseniaLaresZone(
+                        index=idx,
+                        description=description,
+                    )
+                )
+
+        return KseniaLaresCoordinatorData(zones=zones)

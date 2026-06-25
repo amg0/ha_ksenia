@@ -1,12 +1,8 @@
 """
 Credential validators.
 
-Validation functions for user credentials and authentication.
-
-When this file grows, consider splitting into:
-- credentials.py: Basic credential validation
-- oauth.py: OAuth-specific validation
-- api_auth.py: API authentication methods
+Validation functions for user credentials and authentication against
+the Ksenia Lares alarm panel.
 """
 
 from __future__ import annotations
@@ -20,12 +16,13 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-async def validate_credentials(hass: HomeAssistant, username: str, password: str) -> None:
+async def validate_credentials(hass: HomeAssistant, host: str, username: str, password: str) -> None:
     """
-    Validate user credentials by testing API connection.
+    Validate user credentials by testing the connection to the Ksenia panel.
 
     Args:
         hass: Home Assistant instance.
+        host: The IP address or hostname of the Ksenia controller.
         username: The username to validate.
         password: The password to validate.
 
@@ -36,11 +33,12 @@ async def validate_credentials(hass: HomeAssistant, username: str, password: str
 
     """
     client = KseniaLaresApiClient(
+        host=host,
         username=username,
         password=password,
         session=async_create_clientsession(hass),
     )
-    await client.async_get_data()  # May raise authentication/communication errors
+    await client.async_test_connection()
 
 
 __all__ = [

@@ -2,12 +2,9 @@
 Options flow schemas.
 
 Schemas for the options flow that allows users to modify settings
-after initial configuration.
-
-When adding many options, consider grouping them:
-- basic_options.py: Common settings (update interval, debug mode)
-- advanced_options.py: Advanced settings
-- device_options.py: Device-specific settings
+after initial configuration:
+- refresh_period: Polling interval in seconds
+- pin: Encrypted system PIN (secret)
 """
 
 from __future__ import annotations
@@ -17,7 +14,7 @@ from typing import Any
 
 import voluptuous as vol
 
-from custom_components.ksenia.const import DEFAULT_ENABLE_DEBUGGING, DEFAULT_UPDATE_INTERVAL_HOURS
+from custom_components.ksenia.const import CONF_PIN, CONF_REFRESH_PERIOD, DEFAULT_REFRESH_PERIOD
 from homeassistant.helpers import selector
 
 
@@ -36,25 +33,25 @@ def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     return vol.Schema(
         {
             vol.Optional(
-                "update_interval_hours",
-                default=defaults.get("update_interval_hours", DEFAULT_UPDATE_INTERVAL_HOURS),
+                CONF_REFRESH_PERIOD,
+                default=defaults.get(CONF_REFRESH_PERIOD, DEFAULT_REFRESH_PERIOD),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0.25,
-                    max=24,
-                    step=0.25,
-                    unit_of_measurement="h",
+                    min=5,
+                    max=300,
+                    step=5,
+                    unit_of_measurement="s",
                     mode=selector.NumberSelectorMode.BOX,
                 ),
             ),
             vol.Optional(
-                "enable_debugging",
-                default=defaults.get("enable_debugging", DEFAULT_ENABLE_DEBUGGING),
-            ): selector.BooleanSelector(),
-            vol.Optional(
-                "custom_icon",
-                default=defaults.get("custom_icon"),
-            ): selector.IconSelector(),
+                CONF_PIN,
+                default=defaults.get(CONF_PIN, ""),
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(
+                    type=selector.TextSelectorType.PASSWORD,
+                ),
+            ),
         },
     )
 

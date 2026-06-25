@@ -55,7 +55,6 @@ class KseniaLaresEntity(CoordinatorEntity[KseniaLaresDataUpdateCoordinator]):
         """
         super().__init__(coordinator)
         self.entity_description = entity_description
-        # Include entity description key in unique_id to support multiple entities
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{entity_description.key}"
         self._attr_device_info = DeviceInfo(
             identifiers={
@@ -65,6 +64,6 @@ class KseniaLaresEntity(CoordinatorEntity[KseniaLaresDataUpdateCoordinator]):
                 ),
             },
             name=coordinator.config_entry.title,
-            manufacturer=coordinator.config_entry.domain,
-            model=coordinator.data.get("model", "Unknown"),
+            manufacturer="Ksenia",
+            model="Lares",
         )

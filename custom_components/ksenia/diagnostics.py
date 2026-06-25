@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.redact import async_redact_data
 
@@ -21,8 +21,8 @@ if TYPE_CHECKING:
 TO_REDACT = {
     CONF_PASSWORD,
     CONF_USERNAME,
-    "username",
-    "password",
+    CONF_HOST,
+    "pin",
     "api_key",
     "token",
 }
@@ -34,7 +34,6 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     coordinator = entry.runtime_data.coordinator
-    client = entry.runtime_data.client
     integration = entry.runtime_data.integration
 
     # Get device and entity information
@@ -68,16 +67,11 @@ async def async_get_config_entry_diagnostics(
         )
 
     # Coordinator statistics
+    zone_count = len(coordinator.data.zones) if coordinator.data else 0
     coordinator_info = {
         "last_update_success": coordinator.last_update_success,
         "update_interval": str(coordinator.update_interval),
-        "data_keys": list(coordinator.data.keys()) if isinstance(coordinator.data, dict) else None,
-    }
-
-    # API client information (no sensitive data)
-    api_info = {
-        "base_endpoint": "https://jsonplaceholder.typicode.com",
-        "has_credentials": bool(client._username),  # noqa: SLF001
+        "zone_count": zone_count,
     }
 
     # Integration information
@@ -109,23 +103,26 @@ async def async_get_config_entry_diagnostics(
         "last_exception_type": (type(coordinator.last_exception).__name__ if coordinator.last_exception else None),
     }
 
-    # Current data sample (sanitized)
-    data_sample = {}
-    if coordinator.data:
-        if isinstance(coordinator.data, dict):
-            # Include sample data but sanitize sensitive info
-            data_sample = {
-                "title": coordinator.data.get("title"),
-                "body_length": len(coordinator.data.get("body", "")) if coordinator.data.get("body") else 0,
-                "has_user_id": "userId" in coordinator.data,
+    # Zone data sample (non-sensitive)
+    zones_sample = (
+        [
+            {
+                "index": zone.index,
+                "description": zone.description,
+                "status": zone.status,
+                "bypass": zone.bypass,
             }
+            for zone in coordinator.data.zones
+        ]
+        if coordinator.data
+        else []
+    )
 
     return {
         "entry": entry_info,
         "integration": integration_info,
         "coordinator": coordinator_info,
-        "api": api_info,
         "devices": device_info,
-        "data_sample": data_sample,
+        "zones": zones_sample,
         "error": error_info,
     }

@@ -6,9 +6,7 @@ data updates and distributing them to all entities in the integration.
 
 Package structure:
 - base.py: Main coordinator class (KseniaLaresDataUpdateCoordinator)
-- data_processing.py: Data validation, transformation, and caching utilities
-- error_handling.py: Error recovery strategies and retry logic
-- listeners.py: Event listeners and entity callbacks
+- coordinator_data.py: Data model for coordinator output
 
 For more information on coordinators:
 https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
@@ -17,5 +15,10 @@ https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-
 from __future__ import annotations
 
 from .base import KseniaLaresDataUpdateCoordinator
+from .coordinator_data import KseniaLaresCoordinatorData, KseniaLaresZone
 
-__all__ = ["KseniaLaresDataUpdateCoordinator"]
+__all__ = [
+    "KseniaLaresCoordinatorData",
+    "KseniaLaresDataUpdateCoordinator",
+    "KseniaLaresZone",
+]

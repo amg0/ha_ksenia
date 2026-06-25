@@ -7,7 +7,10 @@
   "config_flow": true,
   "documentation": "https://github.com/amg0/ha_ksenia",
   "integration_type": "hub",
-  "iot_class": "cloud_polling",
+  "iot_class": "local_polling",
   "issue_tracker": "https://github.com/amg0/ha_ksenia/issues",
+  "requirements": [
+    "defusedxml==0.7.1"
+  ],
   "version": "0.1.0"
 }

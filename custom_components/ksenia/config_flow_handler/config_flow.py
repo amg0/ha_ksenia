@@ -2,8 +2,8 @@
 Config flow for ksenia.
 
 This module implements the main configuration flow including:
-- Initial user setup
-- Reconfiguration of existing entries
+- Initial user setup (host + credentials)
+- Reconfiguration of credentials
 - Reauthentication flow
 
 For more information:
@@ -14,8 +14,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from slugify import slugify
-
 from custom_components.ksenia.config_flow_handler.schemas import (
     get_reauth_schema,
     get_reconfigure_schema,
@@ -24,7 +22,7 @@ from custom_components.ksenia.config_flow_handler.schemas import (
 from custom_components.ksenia.config_flow_handler.validators import validate_credentials
 from custom_components.ksenia.const import DOMAIN, LOGGER
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.loader import async_get_loaded_integration
 
 if TYPE_CHECKING:
@@ -45,8 +43,8 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     initial setup, reconfiguration, and reauthentication.
 
     Supported flows:
-    - user: Initial setup via UI
-    - reconfigure: Update existing configuration
+    - user: Initial setup via UI (host + username + password)
+    - reconfigure: Update credentials (username + password only)
     - reauth: Handle expired credentials
 
     For more details:
@@ -77,7 +75,8 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """
         Handle a flow initialized by the user.
 
-        This is the entry point when a user adds the integration from the UI.
+        Collects host IP, username, and password. Validates connectivity
+        before creating the entry. Uses the host as the unique ID.
 
         Args:
             user_input: The user input from the config flow form, or None for initial display.
@@ -92,20 +91,19 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 await validate_credentials(
                     self.hass,
+                    host=user_input[CONF_HOST],
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )
             except Exception as exception:  # noqa: BLE001
                 errors["base"] = self._map_exception_to_error(exception)
             else:
-                # Set unique ID based on username
-                # NOTE: This is just an example - use a proper unique ID in production
-                # See: https://developers.home-assistant.io/docs/config_entries_config_flow_handler#unique-ids
-                await self.async_set_unique_id(slugify(user_input[CONF_USERNAME]))
+                # Use the host IP as unique ID so each panel can only be added once
+                await self.async_set_unique_id(user_input[CONF_HOST])
                 self._abort_if_unique_id_configured()
 
                 return self.async_create_entry(
-                    title=user_input[CONF_USERNAME],
+                    title=f"Ksenia Lares ({user_input[CONF_HOST]})",
                     data=user_input,
                 )
 
@@ -129,7 +127,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         Handle reconfiguration of the integration.
 
         Allows users to update their credentials without removing and re-adding
-        the integration.
+        the integration. The host cannot be changed here; use delete + re-add.
 
         Args:
             user_input: The user input from the reconfigure form, or None for initial display.
@@ -145,6 +143,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 await validate_credentials(
                     self.hass,
+                    host=entry.data[CONF_HOST],
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )
@@ -153,7 +152,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 return self.async_update_reload_and_abort(
                     entry,
-                    data=user_input,
+                    data={**entry.data, **user_input},
                 )
 
         return self.async_show_form(
@@ -189,6 +188,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         Handle reauthentication confirmation.
 
         Shows the reauthentication form and processes updated credentials.
+        The existing host is preserved.
 
         Args:
             user_input: The user input with updated credentials, or None for initial display.
@@ -204,6 +204,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 await validate_credentials(
                     self.hass,
+                    host=entry.data[CONF_HOST],
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )

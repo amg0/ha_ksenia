@@ -1,4 +1,8 @@
-"""Connectivity binary sensor for ksenia."""
+"""Connectivity binary sensor for ksenia.
+
+Reports whether the last coordinator update successfully reached the
+Ksenia Lares alarm panel.
+"""
 
 from __future__ import annotations
 
@@ -28,7 +32,7 @@ ENTITY_DESCRIPTIONS = (
 
 
 class KseniaLaresConnectivitySensor(BinarySensorEntity, KseniaLaresEntity):
-    """Connectivity sensor for ksenia."""
+    """Connectivity sensor showing whether the Ksenia panel is reachable."""
 
     def __init__(
         self,
@@ -40,8 +44,7 @@ class KseniaLaresConnectivitySensor(BinarySensorEntity, KseniaLaresEntity):
 
     @property
     def is_on(self) -> bool:
-        """Return true if the API connection is established."""
-        # Connection is considered established if coordinator has valid data
+        """Return true if the last coordinator update was successful."""
         return self.coordinator.last_update_success
 
     @property
@@ -49,5 +52,4 @@ class KseniaLaresConnectivitySensor(BinarySensorEntity, KseniaLaresEntity):
         """Return additional state attributes."""
         return {
             "update_interval": str(self.coordinator.update_interval),
-            "api_endpoint": "JSONPlaceholder (Demo)",
         }

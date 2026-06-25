@@ -1,8 +1,8 @@
 """
 API Client for ksenia.
 
-This module provides the API client for communicating with external services.
-It demonstrates proper error handling, authentication patterns, and async operations.
+Communicates with the Ksenia Lares alarm panel via HTTP GET requests
+using HTTP Basic Authentication. All responses are XML.
 
 For more information on creating API clients:
 https://developers.home-assistant.io/docs/api_lib_index
@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import asyncio
 import socket
-from typing import Any
 
 import aiohttp
+from defusedxml import ElementTree
 
 
 class KseniaLaresApiClientError(Exception):
@@ -49,70 +49,68 @@ def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
     """
     if response.status in (401, 403):
         msg = "Invalid credentials"
-        raise KseniaLaresApiClientAuthenticationError(
-            msg,
-        )
+        raise KseniaLaresApiClientAuthenticationError(msg)
     response.raise_for_status()
 
 
 class KseniaLaresApiClient:
     """
-    API Client for Smart Air Purifier integration.
+    API Client for the Ksenia Lares alarm panel.
 
-    This client demonstrates authentication and API communication patterns
-    for Home Assistant integrations. It handles HTTP requests, error handling,
-    and credential management.
+    Communicates with the Ksenia controller over the local network
+    using HTTP Basic Authentication. All responses are parsed as XML.
 
-    The username and password are stored and would be used for:
-    - HTTP Basic Auth headers
-    - OAuth token exchange
-    - API key generation
-    - Session token management
-
-    Note: JSONPlaceholder is used as a demo endpoint and doesn't require auth.
-    In production, replace with your actual API endpoint that validates credentials.
-
-    For more information on API clients:
-    https://developers.home-assistant.io/docs/api_lib_index
+    Endpoints used:
+      - /xml/zones/zonesDescription16IP.xml  (fetched once at init)
+      - /xml/zones/zonesStatus16IP.xml       (polled regularly)
 
     Attributes:
-        _username: The username for API authentication.
-        _password: The password for API authentication.
+        _host: IP address or hostname of the Ksenia controller.
+        _username: Username for HTTP Basic Auth.
+        _password: Password for HTTP Basic Auth.
         _session: The aiohttp ClientSession for making requests.
 
     """
 
     def __init__(
         self,
+        host: str,
         username: str,
         password: str,
         session: aiohttp.ClientSession,
     ) -> None:
         """
-        Initialize the API Client with credentials.
+        Initialize the API Client with connection details.
 
         Args:
-            username: The username for authentication from config flow.
-            password: The password for authentication from config flow.
+            host: The IP address or hostname of the Ksenia controller.
+            username: The username for HTTP Basic Authentication.
+            password: The password for HTTP Basic Authentication.
             session: The aiohttp ClientSession to use for requests.
 
         """
+        self._host = host
         self._username = username
         self._password = password
         self._session = session
 
-    async def async_get_data(self) -> Any:
-        """
-        Get data from the API.
+    def _base_url(self) -> str:
+        """Build the base URL for the Ksenia controller."""
+        return f"http://{self._host}"
 
-        This method fetches the current state and sensor data from the device.
-        It demonstrates where credentials would be used in production:
-        - Authorization headers (Basic Auth, Bearer Token)
-        - Query parameters (username, api_key)
-        - Session cookies (after login)
+    def _auth(self) -> aiohttp.BasicAuth:
+        """Return the BasicAuth object for requests."""
+        return aiohttp.BasicAuth(self._username, self._password)
+
+    async def async_get_zone_descriptions(self) -> list[str]:
+        """
+        Fetch zone descriptions from the Ksenia controller.
+
+        Called once during coordinator setup to discover zone names.
+        Returns a list of zone name strings in index order.
 
         Returns:
-            A dictionary containing the device data.
+            List of zone description strings.
 
         Raises:
             KseniaLaresApiClientAuthenticationError: If authentication fails.
@@ -120,28 +118,21 @@ class KseniaLaresApiClient:
             KseniaLaresApiClientError: For other API errors.
 
         """
-        # In production: Use username/password for authentication
-        # Example patterns:
-        # 1. Basic Auth: auth=aiohttp.BasicAuth(self._username, self._password)
-        # 2. Token: headers={"Authorization": f"Bearer {self._get_token()}"}
-        # 3. API Key: params={"username": self._username, "key": self._password}
-
-        return await self._api_wrapper(
-            method="get",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            # For demo purposes with JSONPlaceholder (no auth required)
-            # In production, add authentication here
+        xml_text = await self._api_wrapper(
+            url=f"{self._base_url()}/xml/zones/zonesDescription16IP.xml",
         )
+        root = ElementTree.fromstring(xml_text)
+        return [zone.text or "" for zone in root.findall("zone")]
 
-    async def async_set_fan_speed(self, speed: str) -> Any:
+    async def async_get_zone_statuses(self) -> list[dict[str, str]]:
         """
-        Set the fan speed on the device.
+        Fetch current zone statuses from the Ksenia controller.
 
-        Args:
-            speed: The fan speed to set (low, medium, high, auto).
+        Called on every polling interval. Returns a list of dicts,
+        one per zone, with 'status' and 'bypass' keys.
 
         Returns:
-            A dictionary containing the API response.
+            List of zone status dicts with keys 'status' and 'bypass'.
 
         Raises:
             KseniaLaresApiClientAuthenticationError: If authentication fails.
@@ -149,59 +140,45 @@ class KseniaLaresApiClient:
             KseniaLaresApiClientError: For other API errors.
 
         """
-        # In production: Send authenticated request to change fan speed
-        return await self._api_wrapper(
-            method="patch",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            data={"fan_speed": speed, "user": self._username},
-            headers={"Content-type": "application/json; charset=UTF-8"},
+        xml_text = await self._api_wrapper(
+            url=f"{self._base_url()}/xml/zones/zonesStatus16IP.xml",
         )
+        root = ElementTree.fromstring(xml_text)
+        statuses: list[dict[str, str]] = []
+        for zone in root.findall("zone"):
+            status_el = zone.find("status")
+            bypass_el = zone.find("bypass")
+            statuses.append(
+                {
+                    "status": status_el.text or "UNKNOWN" if status_el is not None else "UNKNOWN",
+                    "bypass": bypass_el.text or "UNKNOWN" if bypass_el is not None else "UNKNOWN",
+                }
+            )
+        return statuses
 
-    async def async_set_target_humidity(self, humidity: int) -> Any:
+    async def async_test_connection(self) -> None:
         """
-        Set the target humidity on the device.
+        Test the connection by fetching zone descriptions.
 
-        Args:
-            humidity: The target humidity percentage (30-80).
-
-        Returns:
-            A dictionary containing the API response.
+        Used during config flow validation.
 
         Raises:
-            KseniaLaresApiClientAuthenticationError: If authentication fails.
-            KseniaLaresApiClientCommunicationError: If communication fails.
+            KseniaLaresApiClientAuthenticationError: If credentials are invalid.
+            KseniaLaresApiClientCommunicationError: If the host is unreachable.
             KseniaLaresApiClientError: For other API errors.
 
         """
-        # In production: Send authenticated request to change humidity setting
-        return await self._api_wrapper(
-            method="patch",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            data={"target_humidity": humidity, "user": self._username},
-            headers={"Content-type": "application/json; charset=UTF-8"},
-        )
+        await self.async_get_zone_descriptions()
 
-    async def _api_wrapper(
-        self,
-        method: str,
-        url: str,
-        data: dict | None = None,
-        headers: dict | None = None,
-    ) -> Any:
+    async def _api_wrapper(self, url: str) -> str:
         """
-        Wrapper for API requests with error handling.
-
-        This method handles all HTTP requests and translates exceptions
-        into integration-specific exceptions.
+        Wrapper for GET requests with error handling.
 
         Args:
-            method: The HTTP method (get, post, patch, etc.).
             url: The URL to request.
-            data: Optional data to send in the request body.
-            headers: Optional headers to include in the request.
 
         Returns:
-            The JSON response from the API.
+            The raw response text (XML).
 
         Raises:
             KseniaLaresApiClientAuthenticationError: If authentication fails.
@@ -211,27 +188,21 @@ class KseniaLaresApiClient:
         """
         try:
             async with asyncio.timeout(10):
-                response = await self._session.request(
-                    method=method,
+                response = await self._session.get(
                     url=url,
-                    headers=headers,
-                    json=data,
+                    auth=self._auth(),
                 )
                 _verify_response_or_raise(response)
-                return await response.json()
+                return await response.text()
 
+        except KseniaLaresApiClientError:
+            raise
         except TimeoutError as exception:
             msg = f"Timeout error fetching information - {exception}"
-            raise KseniaLaresApiClientCommunicationError(
-                msg,
-            ) from exception
+            raise KseniaLaresApiClientCommunicationError(msg) from exception
         except (aiohttp.ClientError, socket.gaierror) as exception:
             msg = f"Error fetching information - {exception}"
-            raise KseniaLaresApiClientCommunicationError(
-                msg,
-            ) from exception
+            raise KseniaLaresApiClientCommunicationError(msg) from exception
         except Exception as exception:
             msg = f"Something really wrong happened! - {exception}"
-            raise KseniaLaresApiClientError(
-                msg,
-            ) from exception
+            raise KseniaLaresApiClientError(msg) from exception
