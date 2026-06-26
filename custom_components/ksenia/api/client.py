@@ -16,6 +16,7 @@ import socket
 import aiohttp
 from defusedxml import ElementTree
 
+from homeassistant.const import CONF_PORT
 
 class KseniaLaresApiClientError(Exception):
     """Base exception to indicate a general API error."""

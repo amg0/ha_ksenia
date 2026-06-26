@@ -14,6 +14,7 @@ from custom_components.ksenia.api.client import (
     KseniaLaresApiClientAuthenticationError,
     KseniaLaresApiClientCommunicationError,
 )
+from homeassistant.const import CONF_PORT
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 if TYPE_CHECKING:
