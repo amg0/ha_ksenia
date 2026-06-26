@@ -78,7 +78,7 @@ class KseniaLaresApiClient:
         username: str,
         password: str,
         session: aiohttp.ClientSession,
-        port: int = 80,
+        port: int,
     ) -> None:
         """
         Initialize the API Client with connection details.
@@ -96,9 +96,10 @@ class KseniaLaresApiClient:
         self._password = password
         self._session = session
 
+    @property
     def _base_url(self) -> str:
         """Return the base URL for API requests."""
-        return f"http://{self._host}:{self._port}/xml"
+        return f"http://{self._host}:{self._port}"
 
     def _auth(self) -> aiohttp.BasicAuth:
         """Return the BasicAuth object for requests."""
@@ -121,7 +122,7 @@ class KseniaLaresApiClient:
 
         """
         xml_text = await self._api_wrapper(
-            url=f"{self._base_url()}/xml/zones/zonesDescription16IP.xml",
+            url=f"{self._base_url}/xml/zones/zonesDescription16IP.xml",
         )
         root = ElementTree.fromstring(xml_text)
         return [zone.text or "" for zone in root.findall("zone")]
@@ -143,7 +144,7 @@ class KseniaLaresApiClient:
 
         """
         xml_text = await self._api_wrapper(
-            url=f"{self._base_url()}/xml/zones/zonesStatus16IP.xml",
+            url=f"{self._base_url}/xml/zones/zonesStatus16IP.xml",
         )
         root = ElementTree.fromstring(xml_text)
         statuses: list[dict[str, str]] = []

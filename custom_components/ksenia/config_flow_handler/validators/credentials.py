@@ -10,20 +10,23 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api import KseniaLaresApiClient
+from custom_components.ksenia.api.client import (
+    KseniaLaresApiClientAuthenticationError,
+    KseniaLaresApiClientCommunicationError,
+)
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-import aiohttp
-from homeassistant.const import CONF_HOST, CONF_USERNAME, CONF_PASSWORD
-
 class CannotConnect(KseniaLaresApiClientCommunicationError):
     """Exception to indicate that the connection cannot be established."""
 
+
 class InvalidAuth(KseniaLaresApiClientAuthenticationError):
     """Exception to indicate invalid credentials."""
+
 
 async def validate_credentials(hass: HomeAssistant, host: str, username: str, password: str, port: int) -> None:
     """
