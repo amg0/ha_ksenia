@@ -4,14 +4,28 @@
       "user": {
         "description": "Connect to your Ksenia Lares alarm panel. If you need help, see the [documentation]({documentation_url}).",
         "data": {
-          "host": "IP Address / Host",
+          "host": "IP Address / Host of the Ksenia",
+          "port": "Port",
           "username": "Username",
           "password": "Password"
         },
         "data_description": {
           "host": "The IP address or hostname of your Ksenia Lares controller on the local network.",
+          "port": "The Port number to use to connect to the Ksenia controller",
           "username": "HTTP Basic Auth username for the Ksenia controller.",
           "password": "HTTP Basic Auth password for the Ksenia controller."
+        }
+      },
+      "init_option": {
+        "title": "Ksenia Lares Options",
+        "description": "Configure polling and scenario execution settings.",
+        "data": {
+          "refresh_period": "Polling interval (seconds)",
+          "pin": "System PIN (for scenario execution)"
+        },
+        "data_description": {
+          "refresh_period": "How often to poll zone and partition status (5 to 300 seconds).",
+          "pin": "Encrypted PIN code required to execute some scenarios. Leave empty if not needed."
         }
       },
       "reconfigure": {
@@ -19,6 +33,10 @@
         "data": {
           "username": "Username",
           "password": "Password"
+        },
+        "data_description": {
+          "username": "HTTP Basic Auth username for the Ksenia controller.",
+          "password": "HTTP Basic Auth password for the Ksenia controller."
         }
       },
       "reauth_confirm": {

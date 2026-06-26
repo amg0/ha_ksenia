@@ -1,0 +1,92 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Connectez-vous à votre panneau d'alarme Ksenia Lares. Si vous avez besoin d'aide, consultez la [documentation]({documentation_url}).",
+        "data": {
+          "host": "Adresse IP / Hôte de la Ksenia",
+          "port": "Port",
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe"
+        },
+        "data_description": {
+          "host": "L'adresse IP ou le nom d'hôte de votre contrôleur Ksenia Lares sur le réseau local.",
+          "port": "Le numéro de port à utiliser pour se connecter au contrôleur Ksenia",
+          "username": "Nom d'utilisateur d'authentification HTTP Basic pour le contrôleur Ksenia.",
+          "password": "Mot de passe d'authentification HTTP Basic pour le contrôleur Ksenia."
+        }
+      },
+      "init_option": {
+        "title": "Options Ksenia Lares",
+        "description": "Configure les paramètres d'interrogation et d'exécution de scénarios.",
+        "data": {
+          "refresh_period": "Intervalle d'interrogation (secondes)",
+          "pin": "Code PIN système (pour l'exécution de scénarios)"
+        },
+        "data_description": {
+          "refresh_period": "Fréquence d'interrogation de l'état des zones et partitions (5 à 300 secondes).",
+          "pin": "Code PIN crypté requis pour exécuter certains scénarios. Laissez vide si non nécessaire."
+        }
+      },
+      "reconfigure": {
+        "description": "Mettez à jour les identifiants de cette intégration. L'adresse IP du contrôleur ne peut pas être modifiée ici.",
+        "data": {
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe"
+        },
+        "data_description": {
+          "username": "Nom d'utilisateur d'authentification HTTP Basic pour le contrôleur Ksenia.",
+          "password": "Mot de passe d'authentification HTTP Basic pour le contrôleur Ksenia."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Réauthentifier l'intégration",
+        "description": "Les identifiants pour {username} ne sont plus valides. Veuillez fournir des identifiants mis à jour pour rétablir l'accès.",
+        "data": {
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe"
+        }
+      }
+    },
+    "error": {
+      "auth": "Le nom d'utilisateur ou le mot de passe est incorrect.",
+      "connection": "Impossible de se connecter au contrôleur Ksenia. Vérifiez l'adresse IP et le réseau.",
+      "unknown": "Une erreur inconnue est survenue."
+    },
+    "abort": {
+      "already_configured": "Ce contrôleur Ksenia est déjà configuré.",
+      "reconfigure_successful": "La configuration a été mise à jour avec succès !"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options Ksenia Lares",
+        "description": "Configure les paramètres d'interrogation et d'exécution de scénarios.",
+        "data": {
+          "refresh_period": "Intervalle d'interrogation (secondes)",
+          "pin": "Code PIN système (pour l'exécution de scénarios)"
+        },
+        "data_description": {
+          "refresh_period": "Fréquence d'interrogation de l'état des zones et partitions (5 à 300 secondes).",
+          "pin": "Code PIN crypté requis pour exécuter certains scénarios. Laissez vide si non nécessaire."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "authentication_failed": {
+      "message": "L'authentification a échoué. Vérifiez votre nom d'utilisateur et votre mot de passe."
+    },
+    "update_failed": {
+      "message": "Échec de la récupération des données du contrôleur Ksenia Lares."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "api_connectivity": {
+        "name": "Connexion API"
+      }
+    }
+  }
+}
