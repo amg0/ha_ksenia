@@ -19,7 +19,7 @@ from custom_components.ksenia.config_flow_handler.schemas import (
     get_reconfigure_schema,
     get_user_schema,
 )
-from custom_components.ksena.config_flow_handler.schemas.options import get_options_schema
+from custom_components.ksenia.config_flow_handler.schemas.options import get_options_schema
 from custom_components.ksenia.config_flow_handler.validators import validate_credentials
 from custom_components.ksenia.const import DOMAIN, LOGGER
 from homeassistant import config_entries
