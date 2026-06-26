@@ -110,7 +110,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_HOST: user_input[CONF_HOST],
                     CONF_USERNAME: user_input[CONF_USERNAME],
                     CONF_PASSWORD: user_input[CONF_PASSWORD],
-                    "port": user_input[CONF_PORT],
+                    CONF_PORT: user_input[CONF_PORT],
                 }
 
                 return self.async_show_form(
