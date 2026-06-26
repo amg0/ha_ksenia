@@ -19,6 +19,7 @@ from custom_components.ksenia.config_flow_handler.schemas import (
     get_reconfigure_schema,
     get_user_schema,
 )
+from custom_components.ksena.config_flow_handler.schemas.options import get_options_schema
 from custom_components.ksenia.config_flow_handler.validators import validate_credentials
 from custom_components.ksenia.const import DOMAIN, LOGGER
 from homeassistant import config_entries
@@ -46,6 +47,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     - user: Initial setup via UI (host + username + password)
     - reconfigure: Update credentials (username + password only)
     - reauth: Handle expired credentials
+    - options_setup: Set initial options after credential validation
 
     For more details:
     https://developers.home-assistant.io/docs/config_entries_config_flow_handler
@@ -76,7 +78,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         Handle a flow initialized by the user.
 
         Collects host IP, username, and password. Validates connectivity
-        before creating the entry. Uses the host as the unique ID.
+        before transitioning to the options setup step. Uses the host as the unique ID.
 
         Args:
             user_input: The user input from the config flow form, or None for initial display.
@@ -97,20 +99,23 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[CONF_PORT],
                 )
             except Exception as exception:  # noqa: BLE001
-                errors["base"] = self._map_exception_to_error(exception)
+                errors["base"] = self._map_authentication_error(exception)
             else:
                 # Use the host IP as unique ID so each panel can only be added once
                 await self.async_set_unique_id(user_input[CONF_HOST])
                 self._abort_if_unique_id_configured()
 
-                return self.async_create_entry(
-                    title=f"Ksenia Lares ({user_input[CONF_HOST]})",
-                    data={
-                        CONF_HOST: user_input[CONF_HOST],
-                        CONF_USERNAME: user_input[CONF_USERNAME],
-                        CONF_PASSWORD: user_input[CONF_PASSWORD],
-                        "port": user_input[CONF_PORT],
-                    },
+                # Store credentials temporarily for the next step in the flow
+                self._temp_data = {
+                    CONF_HOST: user_input[CONF_HOST],
+                    CONF_USERNAME: user_input[CONF_USERNAME],
+                    CONF_PASSWORD: user_input[CONF_PASSWORD],
+                    "port": user_input[CONF_PORT],
+                }
+
+                return self.async_show_form(
+                    step_id="options_setup",
+                    data_schema=get_options_schema(),
                 )
 
         integration = async_get_loaded_integration(self.hass, DOMAIN)
@@ -125,6 +130,24 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             },
         )
 
+    async def async_step_options_setup(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Handle the second step of the configuration flow to set initial options."""
+        if user_input is not None:
+            base_data = getattr(self, "_temp_data", {})
+            return self.async_create_entry(
+                title=f"Ksenia Lares ({base_data.get(CONF_HOST)})",
+                data=base_data,
+                options=user_input,
+            )
+
+        return self.async_show_form(
+            step_id="options_setup",
+            data_schema=get_options_schema(),
+        )
+
     async def async_step_reconfigure(
         self,
         user_input: dict[str, Any] | None = None,
@@ -133,7 +156,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         Handle reconfiguration of the integration.
 
         Allows users to update their credentials without removing and re-adding
-        the integration. The host cannot be changed here; use delete + re-add.
+        the integration. The host cannot be can be changed here; use delete + re-add.
 
         Args:
             user_input: The user input from the reconfigure form, or None for initial display.
@@ -155,7 +178,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     password=user_input[CONF_PASSWORD],
                 )
             except Exception as exception:  # noqa: BLE001
-                errors["base"] = self._map_exception_to_error(exception)
+                errors["base"] = self._map_authentication_error(exception)
             else:
                 return self.async_update_reload_and_abort(
                     entry,
@@ -217,7 +240,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     password=user_input[CONF_PASSWORD],
                 )
             except Exception as exception:  # noqa: BLE001
-                errors["base"] = self._map_exception_to_error(exception)
+                errors["base"] = self._map_authentication_error(exception)
             else:
                 return self.async_update_reload_and_abort(
                     entry,
@@ -233,7 +256,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             },
         )
 
-    def _map_exception_to_error(self, exception: Exception) -> str:
+    def _map_authentication_error(self, exception: Exception) -> str:
         """
         Map API exceptions to user-facing error keys.
 
