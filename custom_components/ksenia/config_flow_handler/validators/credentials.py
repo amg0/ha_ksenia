@@ -46,6 +46,7 @@ async def validate_credentials(hass: HomeAssistant, host: str, username: str, pa
         username=username,
         password=password,
         session=async_create_clientsession(hass),
+        port=port,
     )
     await client.async_test_connection()
 
