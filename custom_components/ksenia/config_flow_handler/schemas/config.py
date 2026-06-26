@@ -14,8 +14,7 @@ from typing import Any
 
 import voluptuous as vol
 
-import homeassistant.helpers.config_validation as cv
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from homeassistant.helpers import selector
 
 
@@ -44,6 +43,19 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
                 ),
             ),
             vol.Required(
+                CONF_PORT,
+                default=defaults.get(CONF_PORT, 80),
+            ): vol.All(
+                selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=1,
+                        max=65535,
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Coerce(int),
+            ),
+            vol.Required(
                 CONF_USERNAME,
                 default=defaults.get(CONF_USERNAME, vol.UNDEFINED),
             ): selector.TextSelector(
@@ -56,7 +68,6 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
                     type=selector.TextSelectorType.PASSWORD,
                 ),
             ),
-            vol.Required("port", default=80): cv.port,
         },
     )
 

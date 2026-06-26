@@ -22,7 +22,7 @@ from custom_components.ksenia.config_flow_handler.schemas import (
 from custom_components.ksenia.config_flow_handler.validators import validate_credentials
 from custom_components.ksenia.const import DOMAIN, LOGGER
 from homeassistant import config_entries
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from homeassistant.loader import async_get_loaded_integration
 
 if TYPE_CHECKING:
@@ -91,9 +91,10 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 await validate_credentials(
                     self.hass,
-                    host=user_input[CONF_HOST],
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
+                    user_input[CONF_HOST],
+                    user_input[CONF_USERNAME],
+                    user_input[CONF_PASSWORD],
+                    user_input[CONF_PORT],
                 )
             except Exception as exception:  # noqa: BLE001
                 errors["base"] = self._map_exception_to_error(exception)
@@ -108,7 +109,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_HOST: user_input[CONF_HOST],
                         CONF_USERNAME: user_input[CONF_USERNAME],
                         CONF_PASSWORD: user_input[CONF_PASSWORD],
-                        "port": user_input["port"],
+                        "port": user_input[CONF_PORT],
                     },
                 )
 
@@ -149,6 +150,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await validate_credentials(
                     self.hass,
                     host=entry.data[CONF_HOST],
+                    port=entry.data["port"],
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )
@@ -210,6 +212,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await validate_credentials(
                     self.hass,
                     host=entry.data[CONF_HOST],
+                    port=entry.data[CONF_PORT],
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )

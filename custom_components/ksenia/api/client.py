@@ -16,7 +16,6 @@ import socket
 import aiohttp
 from defusedxml import ElementTree
 
-from homeassistant.const import CONF_PORT
 
 class KseniaLaresApiClientError(Exception):
     """Base exception to indicate a general API error."""
@@ -76,10 +75,10 @@ class KseniaLaresApiClient:
     def __init__(
         self,
         host: str,
+        port: int,
         username: str,
         password: str,
         session: aiohttp.ClientSession,
-        port: int,
     ) -> None:
         """
         Initialize the API Client with connection details.

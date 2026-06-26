@@ -36,7 +36,8 @@
       "unknown": "Unknown error occurred."
     },
     "abort": {
-      "already_configured": "This Ksenia controller is already configured."
+      "already_configured": "This Ksenia controller is already configured.",
+      "reconfigure_successful": "The configuration was updated successfully!"
     }
   },
   "options": {

@@ -15,5 +15,6 @@ PARALLEL_UPDATES = 1
 CONF_PIN = "pin"
 CONF_REFRESH_PERIOD = "refresh_period"
 
+
 # Default configuration values
 DEFAULT_REFRESH_PERIOD = 15  # seconds

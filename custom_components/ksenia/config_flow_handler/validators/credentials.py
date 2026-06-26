@@ -14,7 +14,6 @@ from custom_components.ksenia.api.client import (
     KseniaLaresApiClientAuthenticationError,
     KseniaLaresApiClientCommunicationError,
 )
-from homeassistant.const import CONF_PORT
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 if TYPE_CHECKING:
@@ -47,10 +46,10 @@ async def validate_credentials(hass: HomeAssistant, host: str, username: str, pa
     """
     client = KseniaLaresApiClient(
         host=host,
+        port=port,
         username=username,
         password=password,
         session=async_create_clientsession(hass),
-        port=port,
     )
     await client.async_test_connection()
 
