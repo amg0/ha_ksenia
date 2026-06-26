@@ -78,6 +78,7 @@ class KseniaLaresApiClient:
         username: str,
         password: str,
         session: aiohttp.ClientSession,
+        port: int = 80,
     ) -> None:
         """
         Initialize the API Client with connection details.
@@ -90,13 +91,14 @@ class KseniaLaresApiClient:
 
         """
         self._host = host
+        self._port = port
         self._username = username
         self._password = password
         self._session = session
 
     def _base_url(self) -> str:
-        """Build the base URL for the Ksenia controller."""
-        return f"http://{self._host}"
+        """Return the base URL for API requests."""
+        return f"http://{self._host}:{self._port}/xml"
 
     def _auth(self) -> aiohttp.BasicAuth:
         """Return the BasicAuth object for requests."""

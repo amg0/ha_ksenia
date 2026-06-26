@@ -16,7 +16,16 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-async def validate_credentials(hass: HomeAssistant, host: str, username: str, password: str) -> None:
+import aiohttp
+from homeassistant.const import CONF_HOST, CONF_USERNAME, CONF_PASSWORD
+
+class CannotConnect(KseniaLaresApiClientCommunicationError):
+    """Exception to indicate that the connection cannot be established."""
+
+class InvalidAuth(KseniaLaresApiClientAuthenticationError):
+    """Exception to indicate invalid credentials."""
+
+async def validate_credentials(hass: HomeAssistant, host: str, username: str, password: str, port: int) -> None:
     """
     Validate user credentials by testing the connection to the Ksenia panel.
 

@@ -104,7 +104,12 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
                 return self.async_create_entry(
                     title=f"Ksenia Lares ({user_input[CONF_HOST]})",
-                    data=user_input,
+                    data={
+                        CONF_HOST: user_input[CONF_HOST],
+                        CONF_USERNAME: user_input[CONF_USERNAME],
+                        CONF_PASSWORD: user_input[CONF_PASSWORD],
+                        "port": user_input["port"],
+                    },
                 )
 
         integration = async_get_loaded_integration(self.hass, DOMAIN)
