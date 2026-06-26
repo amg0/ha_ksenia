@@ -7,6 +7,8 @@
 [![hacs][hacsbadge]][hacs]
 ![Project Maintenance][maintenance-shield]
 
+[![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
+
 <!--
 Uncomment and customize these badges if you want to use them:
 
@@ -21,26 +23,18 @@ Uncomment and customize these badges if you want to use them:
 ## ✨ Features
 
 - **Easy Setup**: Simple configuration through the UI - no YAML required
-- **Air Quality Monitoring**: Track AQI and PM2.5 levels in real-time
-- **Filter Management**: Monitor filter life and get replacement alerts
-- **Smart Control**: Adjust fan speed, target humidity, and operating modes
-- **Child Lock**: Safety feature to prevent accidental changes
-- **Diagnostic Info**: View filter life, runtime hours, and device statistics
+- **Zone Monitoring**: Monitor alarm zone status and motion detection
+- **Connectivity Tracking**: Real-time tracking of API connection status
 - **Reconfigurable**: Change credentials anytime without removing the integration
 - **Options Flow**: Adjust settings like update interval after setup
-- **Custom Services**: Advanced control with built-in service calls
+- **Service Actions**: Force data refresh via service calls
 
 **This integration will set up the following platforms.**
 
-| Platform        | Description                                              |
-| --------------- | -------------------------------------------------------- |
-| `sensor`        | Air quality index (AQI), PM2.5, filter life, and runtime |
-| `binary_sensor` | API connection status and filter replacement alert       |
-| `switch`        | Child lock and LED display controls                      |
-| `select`        | Fan speed selection (Low/Medium/High/Auto)               |
-| `number`        | Target humidity setting (30-80%)                         |
-| `button`        | Reset filter timer after replacement                     |
-| `fan`           | Air purifier fan control with speed settings             |
+| Platform        | Description                                      |
+| --------------- | ------------------------------------------------ |
+| `binary_sensor` | API connectivity and alarm zone motion detection |
+| `service`       | Manual data reload and example actions           |
 
 > [!TIP]
 > **Interactive Demo:** The entities are interconnected for demonstration.
@@ -407,7 +401,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 [maintenance-shield]: https://img.shields.io/badge/maintainer-%40amg0-blue.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/amg0/ha_ksenia.svg?style=for-the-badge
 [releases]: https://github.com/amg0/ha_ksenia/releases
-[user_profile]: https://github.com/jpawlowski
+[user_profile]: https://github.com/amg0
+[buymecoffee]: https://buymeacoffee.com/amg0
+[buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge
 
 <!-- Optional badge definitions - uncomment if needed:
 [buymecoffee]: https://www.buymeacoffee.com/jpawlowski
