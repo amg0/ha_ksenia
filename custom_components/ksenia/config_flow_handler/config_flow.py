@@ -114,7 +114,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 }
 
                 return self.async_show_form(
-                    step_id="options_setup",
+                    step_id="init_option",
                     data_schema=get_options_schema(),
                 )
 
@@ -130,11 +130,11 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             },
         )
 
-    async def async_step_options_setup(
+    async def async_step_init_option(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
-        """Handle the second step of the configuration flow to set initial options."""
+        """Handle the final step of the configuration flow to set initial options before creating the entry."""
         if user_input is not None:
             base_data = getattr(self, "_temp_data", {})
             return self.async_create_entry(
@@ -144,7 +144,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
         return self.async_show_form(
-            step_id="options_setup",
+            step_id="init_option",
             data_schema=get_options_schema(),
         )
 
