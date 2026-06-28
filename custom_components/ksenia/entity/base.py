@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 from custom_components.ksenia.const import ATTRIBUTION
 from custom_components.ksenia.coordinator import KseniaLaresDataUpdateCoordinator
-from homeassistant.helpers.device_registry import DeviceInfo
+from custom_components.ksenia.entity_utils.device_info import create_device_info
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 if TYPE_CHECKING:
@@ -57,14 +57,11 @@ class KseniaLaresEntity(CoordinatorEntity[KseniaLaresDataUpdateCoordinator]):
         self.entity_description = entity_description
         self.coordinator = coordinator
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{entity_description.key}"
-        self._attr_device_info = DeviceInfo(
-            identifiers={
-                (
-                    coordinator.config_entry.domain,
-                    coordinator.config_entry.entry_id,
-                ),
-            },
-            name=coordinator.config_entry.title,
+
+        self._attr_device_info = create_device_info(
+            config_entry=coordinator.config_entry,
+            name="Ksenia Lares",  # coordinator.config_entry.title,
             manufacturer="Ksenia",
             model="Lares",
+            # sw_version: str | None = None
         )

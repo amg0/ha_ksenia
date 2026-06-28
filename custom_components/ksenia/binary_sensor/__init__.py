@@ -43,7 +43,7 @@ async def async_setup_entry(
                 # translation_key="api_connectivity",
                 device_class=zone_configuration.get(zone.description, BinarySensorDeviceClass.MOTION),
                 # entity_category=EntityCategory.DIAGNOSTIC,
-                # icon="mdi:api",
+                # name=zone.description,
                 has_entity_name=True,
             ),
             zone=zone,
