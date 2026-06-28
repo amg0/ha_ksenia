@@ -23,7 +23,7 @@ Uncomment and customize these badges if you want to use them:
 ## ✨ Features
 
 - **Easy Setup**: Simple configuration through the UI - no YAML required
-- **Zone Monitoring**: Monitor alarm zone status and motion detection
+- **Zone Monitoring**: Monitor alarm zone status and chose if it is a motion detection or a contact sensor (door)
 - **Connectivity Tracking**: Real-time tracking of API connection status
 - **Reconfigurable**: Change credentials anytime without removing the integration
 - **Options Flow**: Adjust settings like update interval after setup
@@ -31,10 +31,10 @@ Uncomment and customize these badges if you want to use them:
 
 **This integration will set up the following platforms.**
 
-| Platform        | Description                                      |
-| --------------- | ------------------------------------------------ |
-| `binary_sensor` | API connectivity and alarm zone motion detection |
-| `service`       | Manual data reload and example actions           |
+| Platform        | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| `binary_sensor` | API connectivity and zone motion or door sensor detection |
+| `service`       | Manual data reload and example actions                    |
 
 > [!TIP]
 > **Interactive Demo:** The entities are interconnected for demonstration.
@@ -95,17 +95,29 @@ That's it! The integration will start loading your data.
 3. Search for "Ksenia Lares"
 4. Follow the same setup steps as Option 1
 
-### Step 3: Adjust Settings (Optional)
+### Step 3: Adjust Settings
 
 After setup, you can adjust options:
 
 1. Go to **Settings** → **Devices & Services**
 2. Find **Ksenia Lares**
 3. Click **Configure** to adjust:
-   - Update interval (how often to refresh data)
-   - Enable debug logging
+   - Host / Ip address
+   - Port number
+   - user name
+   - password
 
-You can also **Reconfigure** your credentials anytime without removing the integration.
+At this point the connectivity will be checked to inssure proper IP & credentials are entered. You can also **Reconfigure** your credentials anytime without removing the integration.
+
+In a second dialog, you will be asked to enter
+
+1. Update interval (how often to refresh data in seconds)
+2. a PIN number used to execute alarm scenario ( not implemented yet )
+
+In a third dialog, you will be presented with all the alarm zone detected and you will be asked to enter a choice for each zone
+
+1. either it is a motion detector
+2. or it is a contactor ( door, window, etc )
 
 ### Step 4: Start Using!
 
@@ -123,57 +135,16 @@ Find all entities in **Settings** → **Devices & Services** → **Ksenia Lares*
 
 ## Available Entities
 
-### Sensors
-
-- **Air Quality Index (AQI)**: Real-time air quality measurement (0-500 scale)
-  - Includes air quality category (Good/Moderate/Unhealthy/etc.)
-  - Health recommendations based on current AQI
-- **PM2.5**: Fine particulate matter concentration in µg/m³
-- **Filter Life Remaining** (Diagnostic): Shows remaining filter life as percentage
-- **Total Runtime** (Diagnostic): Total operating hours of the device
-
 ### Binary Sensors
 
 - **API Connection**: Shows whether the connection to the API is active
   - On: Connected and receiving data
   - Off: Connection lost or authentication failed
   - Shows update interval and API endpoint information
-- **Filter Replacement Needed**: Alerts when filter needs replacement
-  - Shows estimated days remaining
-  - Turns on when filter life is low
-
-### Switches
-
-- **Child Lock**: Prevents accidental button presses on the device
-  - Icon changes based on state (locked/unlocked)
-- **LED Display**: Enable/disable the LED display
-  - Disabled by default - enable in entity settings if needed
-
-### Select
-
-- **Fan Speed**: Choose from Low, Medium, High, or Auto
-  - Icon changes dynamically based on selected speed
-  - Auto mode adjusts speed based on air quality
-  - Syncs bidirectionally with the Air Purifier fan entity
-
-### Number
-
-- **Target Humidity**: Set desired humidity level (30-80%)
-  - Adjustable in 5% increments
-  - Displayed as a slider in the UI
-
-### Button
-
-- **Reset Filter Timer**: Reset the filter life to 100%
-  - Press to reset after replacing the filter
-  - Instantly updates the Filter Life Remaining sensor
-
-### Fan
-
-- **Air Purifier**: Control the air purifier fan speed and power
-  - Three speed levels: Low, Medium, High
-  - Syncs bidirectionally with the Fan Speed select entity
-  - Turn on/off functionality
+- **Motion detector**:
+  - Alerts when KSenia motion sensors detects motion
+- **Door sensor**:
+  - Alerts when an opening ( door, window ) is opened
 
 ## Custom Services
 
@@ -207,19 +178,28 @@ Use these services in automations or scripts for more control.
 
 ### During Setup
 
-| Name     | Required | Description           |
-| -------- | -------- | --------------------- |
-| Username | Yes      | Your account username |
-| Password | Yes      | Your account password |
+| Name     | Required | Description                             |
+| -------- | -------- | --------------------------------------- |
+| Host     | Yes      | Your KSenia IP address or hostname      |
+| Port     | Yes      | Your KSenia Web application port number |
+| Username | Yes      | Your account username                   |
+| Password | Yes      | Your account password                   |
 
-### After Setup (Options)
+### Second Phase
 
 You can change these anytime by clicking **Configure**:
 
-| Name             | Default | Description                |
-| ---------------- | ------- | -------------------------- |
-| Update Interval  | 1 hour  | How often to refresh data  |
-| Enable Debugging | Off     | Enable extra debug logging |
+| Name            | Default | Description               |
+| --------------- | ------- | ------------------------- |
+| Update Interval | 1 hour  | How often to refresh data |
+
+### Third Phase
+
+You can change these anytime by clicking **Configure**:
+
+| Name                 | Default | Description                                     |
+| -------------------- | ------- | ----------------------------------------------- |
+| For Each Ksenia Zone | MOTION  | a choice between MOTION detector or DOOR sensor |
 
 ## Troubleshooting
 
