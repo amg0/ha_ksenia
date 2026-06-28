@@ -121,15 +121,9 @@ In a third dialog, you will be presented with all the alarm zone detected and yo
 
 ### Step 4: Start Using!
 
-The integration creates several entities for your air purifier:
+The integration creates an entity for each KSenia declared zone:
 
-- **Sensors**: Air quality index, PM2.5 levels, filter life remaining, total runtime
-- **Binary Sensors**: API connection status, filter replacement alert
-- **Switches**: Child lock, LED display control
-- **Select**: Fan speed (Low/Medium/High/Auto)
-- **Number**: Target humidity (30-80%)
-- **Button**: Reset filter timer
-- **Fan**: Air purifier fan control
+- **Binary Sensors**: API connection status, per zone sensor ( Motion or Door )
 
 Find all entities in **Settings** → **Devices & Services** → **Ksenia Lares** → click on the device.
 
