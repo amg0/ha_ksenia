@@ -10,8 +10,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.const import PARALLEL_UPDATES as PARALLEL_UPDATES
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntityDescription
+from homeassistant.const import EntityCategory
 
-from .connectivity import ENTITY_DESCRIPTIONS as CONNECTIVITY_DESCRIPTIONS, KseniaLaresConnectivitySensor
+from .connectivity import KseniaLaresConnectivitySensor
 from .zone_motion import KseniaLaresZoneMotionSensor
 
 if TYPE_CHECKING:
@@ -27,15 +29,23 @@ async def async_setup_entry(
 ) -> None:
     """Set up the binary_sensor platform.
 
-    Creates one motion sensor per zone discovered at coordinator setup,
+    Creates one motion or door sensor per zone discovered at coordinator setup,
     plus a single connectivity diagnostic sensor.
     """
     coordinator = entry.runtime_data.coordinator
-
+    zone_configuration: dict[str, BinarySensorDeviceClass] = entry.data["zone_configurations"]
     # Create one motion sensor per zone (discovered during coordinator _async_setup)
     zone_entities = [
         KseniaLaresZoneMotionSensor(
             coordinator=coordinator,
+            entity_description=BinarySensorEntityDescription(
+                key=f"{zone.description}",
+                # translation_key="api_connectivity",
+                device_class=zone_configuration.get(zone.description, BinarySensorDeviceClass.MOTION),
+                # entity_category=EntityCategory.DIAGNOSTIC,
+                # icon="mdi:api",
+                has_entity_name=True,
+            ),
             zone=zone,
         )
         for zone in coordinator.data.zones
@@ -45,9 +55,15 @@ async def async_setup_entry(
     connectivity_entities = [
         KseniaLaresConnectivitySensor(
             coordinator=coordinator,
-            entity_description=entity_description,
+            entity_description=BinarySensorEntityDescription(
+                key="api_connectivity",
+                translation_key="api_connectivity",
+                device_class=BinarySensorDeviceClass.CONNECTIVITY,
+                entity_category=EntityCategory.DIAGNOSTIC,
+                icon="mdi:api",
+                has_entity_name=True,
+            ),
         )
-        for entity_description in CONNECTIVITY_DESCRIPTIONS
     ]
 
     async_add_entities([*zone_entities, *connectivity_entities])

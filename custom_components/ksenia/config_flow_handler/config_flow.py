@@ -18,11 +18,13 @@ from custom_components.ksenia.config_flow_handler.schemas import (
     get_reauth_schema,
     get_reconfigure_schema,
     get_user_schema,
+    get_zones_schema,
 )
 from custom_components.ksenia.config_flow_handler.schemas.options import get_options_schema
 from custom_components.ksenia.config_flow_handler.validators import validate_credentials
-from custom_components.ksenia.const import DOMAIN, LOGGER
+from custom_components.ksenia.const import CONF_ZONE_CONFIGURATIONS, DOMAIN, LOGGER
 from homeassistant import config_entries
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from homeassistant.loader import async_get_loaded_integration
 
@@ -91,7 +93,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                await validate_credentials(
+                self._zones: list[str] = await validate_credentials(
                     self.hass,
                     user_input[CONF_HOST],
                     user_input[CONF_USERNAME],
@@ -113,10 +115,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_PORT: user_input[CONF_PORT],
                 }
 
-                return self.async_show_form(
-                    step_id="init_option",
-                    data_schema=get_options_schema(),
-                )
+                return await self.async_step_init_option()
 
         integration = async_get_loaded_integration(self.hass, DOMAIN)
         assert integration.documentation is not None, "Integration documentation URL is not set in manifest.json"
@@ -134,18 +133,43 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
-        """Handle the final step of the configuration flow to set initial options before creating the entry."""
+        """Handle the options step before the zone configuration step."""
         if user_input is not None:
-            base_data = getattr(self, "_temp_data", {})
+            self._options = user_input
+            zone_names = getattr(self, "_zones", [])
+            if zone_names and len(zone_names) > 0:
+                return await self.async_step_zone_init()
+
             return self.async_create_entry(
-                title=f"Ksenia Lares ({base_data.get(CONF_HOST)})",
-                data=base_data,
-                options=user_input,
+                title=f"Ksenia Lares ({self._temp_data.get(CONF_HOST)})",
+                data=self._temp_data,
+                options=self._options,
             )
 
         return self.async_show_form(
             step_id="init_option",
             data_schema=get_options_schema(),
+        )
+
+    async def async_step_zone_init(
+        self,
+        user_input: dict[str, BinarySensorDeviceClass] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Handle the zone configuration step before creating the entry."""
+        base_data = getattr(self, "_temp_data", {})
+
+        if user_input is not None:
+            base_data[CONF_ZONE_CONFIGURATIONS] = user_input
+            return self.async_create_entry(
+                title=f"Ksenia Lares ({base_data.get(CONF_HOST)})",
+                data=base_data,
+                options=getattr(self, "_options", {}),
+            )
+
+        zone_names = self._zones
+        return self.async_show_form(
+            step_id="zone_init",
+            data_schema=get_zones_schema(zone_names),
         )
 
     async def async_step_reconfigure(

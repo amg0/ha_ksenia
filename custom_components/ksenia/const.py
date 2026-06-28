@@ -14,6 +14,8 @@ PARALLEL_UPDATES = 1
 # Config entry data keys (in addition to homeassistant.const keys)
 CONF_PIN = "pin"
 CONF_REFRESH_PERIOD = "refresh_period"
+CONF_ZONE_LIST = "zones"
+CONF_ZONE_CONFIGURATIONS = "zone_configurations"
 
 
 # Default configuration values

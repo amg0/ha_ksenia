@@ -159,7 +159,7 @@ class KseniaLaresApiClient:
             )
         return statuses
 
-    async def async_test_connection(self) -> None:
+    async def async_test_connection(self) -> list[str]:
         """
         Test the connection by fetching zone descriptions.
 
@@ -171,7 +171,7 @@ class KseniaLaresApiClient:
             KseniaLaresApiClientError: For other API errors.
 
         """
-        await self.async_get_zone_descriptions()
+        return await self.async_get_zone_descriptions()
 
     async def _api_wrapper(self, url: str) -> str:
         """

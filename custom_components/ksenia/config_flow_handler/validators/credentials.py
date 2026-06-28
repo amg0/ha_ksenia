@@ -28,7 +28,7 @@ class InvalidAuth(KseniaLaresApiClientAuthenticationError):
     """Exception to indicate invalid credentials."""
 
 
-async def validate_credentials(hass: HomeAssistant, host: str, username: str, password: str, port: int) -> None:
+async def validate_credentials(hass: HomeAssistant, host: str, username: str, password: str, port: int) -> list[str]:
     """
     Validate user credentials by testing the connection to the Ksenia panel.
 
@@ -51,7 +51,7 @@ async def validate_credentials(hass: HomeAssistant, host: str, username: str, pa
         password=password,
         session=async_create_clientsession(hass),
     )
-    await client.async_test_connection()
+    return await client.async_test_connection()
 
 
 __all__ = [

@@ -9,26 +9,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.entity import KseniaLaresEntity
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntity,
-    BinarySensorEntityDescription,
-)
-from homeassistant.const import EntityCategory
+from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySensorEntityDescription
 
 if TYPE_CHECKING:
     from custom_components.ksenia.coordinator import KseniaLaresDataUpdateCoordinator
-
-ENTITY_DESCRIPTIONS = (
-    BinarySensorEntityDescription(
-        key="api_connectivity",
-        translation_key="api_connectivity",
-        device_class=BinarySensorDeviceClass.CONNECTIVITY,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        icon="mdi:api",
-        has_entity_name=True,
-    ),
-)
 
 
 class KseniaLaresConnectivitySensor(BinarySensorEntity, KseniaLaresEntity):

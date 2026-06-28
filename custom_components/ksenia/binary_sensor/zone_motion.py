@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from custom_components.ksenia.const import ATTRIBUTION
 from custom_components.ksenia.coordinator import KseniaLaresDataUpdateCoordinator, KseniaLaresZone
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
-from homeassistant.helpers.device_registry import DeviceInfo
+from custom_components.ksenia.entity.base import KseniaLaresEntity
+from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySensorEntityDescription
 
 
-class KseniaLaresZoneMotionSensor(BinarySensorEntity):
+class KseniaLaresZoneMotionSensor(BinarySensorEntity, KseniaLaresEntity):
     """
     Motion sensor entity for a single Ksenia alarm zone.
 
@@ -23,11 +23,11 @@ class KseniaLaresZoneMotionSensor(BinarySensorEntity):
 
     _attr_attribution = ATTRIBUTION
     _attr_has_entity_name = True
-    _attr_device_class = BinarySensorDeviceClass.MOTION
 
     def __init__(
         self,
         coordinator: KseniaLaresDataUpdateCoordinator,
+        entity_description: BinarySensorEntityDescription,
         zone: KseniaLaresZone,
     ) -> None:
         """
@@ -38,31 +38,32 @@ class KseniaLaresZoneMotionSensor(BinarySensorEntity):
             zone: The zone data (index + description) for this sensor.
 
         """
-        super().__init__()
-        self._coordinator = coordinator
+        super().__init__(coordinator, entity_description)
+        # self._coordinator = coordinator
         self._zone_index = zone.index
         # Unique ID: entry_id + zone index so renaming zones doesn't break entities
-        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_zone_{zone.index}"
+        # self._attr_unique_id = f"{coordinator.config_entry.entry_id}_zone_{zone.index}"
         # Use the zone description as the entity name
         self._attr_name = zone.description
-        self._attr_device_info = DeviceInfo(
-            identifiers={
-                (
-                    coordinator.config_entry.domain,
-                    coordinator.config_entry.entry_id,
-                ),
-            },
-            name=coordinator.config_entry.title,
-            manufacturer="Ksenia",
-            model="Lares",
-        )
+        self._attr_device_class = entity_description.device_class
+        # self._attr_device_info = DeviceInfo(
+        #     identifiers={
+        #         (
+        #             coordinator.config_entry.domain,
+        #             coordinator.config_entry.entry_id,
+        #         ),
+        #     },
+        #     name=coordinator.config_entry.title,
+        #     manufacturer="Ksenia",
+        #     model="Lares",
+        # )
 
     @property
     def _zone(self) -> KseniaLaresZone | None:
         """Return current zone data from coordinator."""
-        if self._coordinator.data is None:
+        if self.coordinator.data is None:
             return None
-        zones = self._coordinator.data.zones
+        zones = self.coordinator.data.zones
         if self._zone_index < len(zones):
             return zones[self._zone_index]
         return None
@@ -70,7 +71,7 @@ class KseniaLaresZoneMotionSensor(BinarySensorEntity):
     @property
     def available(self) -> bool:
         """Return True if coordinator last update succeeded."""
-        return self._coordinator.last_update_success
+        return self.coordinator.last_update_success
 
     @property
     def is_on(self) -> bool:
@@ -93,4 +94,4 @@ class KseniaLaresZoneMotionSensor(BinarySensorEntity):
 
     async def async_added_to_hass(self) -> None:
         """Register coordinator listener when added to HA."""
-        self.async_on_remove(self._coordinator.async_add_listener(self.async_write_ha_state))
+        self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
