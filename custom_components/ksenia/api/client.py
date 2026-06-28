@@ -63,6 +63,8 @@ class KseniaLaresApiClient:
     Endpoints used:
       - /xml/zones/zonesDescription16IP.xml  (fetched once at init)
       - /xml/zones/zonesStatus16IP.xml       (polled regularly)
+      - /xml/partitions/partitionsDescription16IP.xml (fetched to get names)
+      - /xml/partitions/partitionsStatus16IP.xml     (polled regularly)
 
     Attributes:
         _host: IP address or hostname of the Ksenia controller.
@@ -157,6 +159,51 @@ class KseniaLaresApiClient:
                     "bypass": bypass_el.text or "UNKNOWN" if bypass_el is not None else "UNKNOWN",
                 }
             )
+        return statuses
+
+    async def async_get_partition_statuses(self) -> dict[str, str]:
+        """
+        Fetch current partition statuses from the Ksenia controller.
+
+        Calls both description and status endpoints to return a mapping
+        of partition names to their current status.
+
+        Returns:
+            A dictionary with partition name as key and status as value.
+
+        Raises:
+            KseniaLaresApiClientAuthenticationError: If authentication fails.
+            KseniaLaresApiClientCommunicationError: If communication fails.
+            KseniaLaresApiClientError: For other API errors.
+
+        """
+        # 1. Fetch descriptions to get names
+        desc_xml = await self._api_wrapper(
+            url=f"{self._base_url}/xml/partitions/partitionsDescription16IP.xml",
+        )
+        desc_root = ElementTree.fromstring(desc_xml)
+        # Assuming partition elements contain the name in their text, similar to zones
+        descriptions = [p.text or "" for p in desc_root.findall("partition") if p.text]
+
+        # 2. Fetch statuses
+        stat_xml = await self._api_wrapper(
+            url=f"{self._base_url}/xml/partitions/partitionsStatus16IP.xml",
+        )
+        stat_root = ElementTree.fromstring(stat_xml)
+
+        # 3. Combine results into a dictionary <name>:<status>
+        statuses: dict[str, str] = {}
+        for i, partition_el in enumerate(stat_root.findall("partition")):
+            status_val = partition_el.text or "UNKNOWN"
+
+            # Use name from descriptions if available by index, otherwise fallback to a generic name
+            if i < len(descriptions):
+                name = descriptions[i]
+            else:
+                name = f"Partition {i + 1}"
+
+            statuses[name] = status_val
+
         return statuses
 
     async def async_test_connection(self) -> list[str]:
