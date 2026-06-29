@@ -1443,7 +1443,7 @@ main() {
     replace_in_files "Integration blueprint" "$title" "integration title (lowercase)"
 
     # Replace namespace (class prefix)
-    replace_in_files "IntegrationBlueprint" "$namespace" "class namespace prefix"
+    replace_in_files "KseniaLares" "$namespace" "class namespace prefix"
 
     # Replace GitHub repository (both full path and repository name only)
     replace_in_files "jpawlowski/hacs.integration_blueprint" "$github_repo" "GitHub repository"
