@@ -194,17 +194,87 @@ class KseniaLaresApiClient:
         # 3. Combine results into a dictionary <name>:<status>
         statuses: dict[str, str] = {}
         for i, partition_el in enumerate(stat_root.findall("partition")):
-            status_val = partition_el.text or "UNKNOWN"
-
-            # Use name from descriptions if available by index, otherwise fallback to a generic name
             if i < len(descriptions):
                 name = descriptions[i]
-            else:
-                name = f"Partition {i + 1}"
-
-            statuses[name] = status_val
+                statuses[name] = partition_el.text or "UNKNOWN"
 
         return statuses
+
+    async def async_get_scenarios(self) -> list[dict[str, str | int | bool]]:
+        """
+        Fetch available scenarios from the Ksenia controller.
+
+        Retrieves descriptions and options, filtering to only keep scenarios where
+        <abil> is TRUE.
+
+        Returns:
+            A list of dictionaries representing enabled scenarios, each containing
+            'id', 'name', and 'nopin' boolean.
+
+        Raises:
+            KseniaLaresApiClientAuthenticationError: If credentials are invalid.
+            KseniaLaresApiClientCommunicationError: If the host is unreachable.
+            KseniaLaresApiClientError: For other API errors.
+
+        """
+        desc_xml = await self._api_wrapper(
+            url=f"{self._base_url}/xml/scenarios/scenariosDescription.xml",
+        )
+        desc_root = ElementTree.fromstring(desc_xml)
+        descriptions = [s.text or "" for s in desc_root.findall("scenario")]
+
+        opt_xml = await self._api_wrapper(
+            url=f"{self._base_url}/xml/scenarios/scenariosOptions.xml",
+        )
+        opt_root = ElementTree.fromstring(opt_xml)
+        options = opt_root.findall("scenario")
+
+        scenarios: list[dict[str, str | int | bool]] = []
+        for idx, name in enumerate(descriptions):
+            if idx >= len(options):
+                break
+            opt = options[idx]
+            abil_el = opt.find("abil")
+            nopin_el = opt.find("nopin")
+
+            abil = (abil_el.text or "").strip().upper() if abil_el is not None else ""
+            nopin = (nopin_el.text or "").strip().upper() if nopin_el is not None else ""
+
+            if abil == "TRUE":
+                scenarios.append(
+                    {
+                        "id": idx,
+                        "name": name,
+                        "nopin": nopin == "TRUE",
+                    }
+                )
+
+        return scenarios
+
+    async def async_run_scenario(self, scenario_id: int | str, pin: str | None = None) -> str:
+        """
+        Run a given scenario (macro) with an optional PIN code.
+
+        Args:
+            scenario_id: The ID of the scenario to execute.
+            pin: Optional system PIN code required to execute the scenario.
+
+        Returns:
+            The raw XML response text.
+
+        Raises:
+            KseniaLaresApiClientAuthenticationError: If credentials are invalid.
+            KseniaLaresApiClientCommunicationError: If the host is unreachable.
+            KseniaLaresApiClientError: For other API errors.
+
+        """
+        url = (
+            f"{self._base_url}/xml/cmd/cmdOk.xml?cmd=setMacro&macroId={scenario_id}&redirectPage=/xml/cmd/cmdError.xml"
+        )
+        if pin is not None:
+            url += f"&pin={pin}"
+
+        return await self._api_wrapper(url=url)
 
     async def async_test_connection(self) -> list[str]:
         """

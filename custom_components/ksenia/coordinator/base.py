@@ -71,6 +71,7 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         )
         # Zone descriptions, populated during _async_setup
         self._zone_descriptions: list[str] = []
+        self._partitions_data: dict[str, str] = {}
 
     async def _async_setup(self) -> None:
         """
@@ -88,19 +89,21 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         client = self.config_entry.runtime_data.client
         try:
             self._zone_descriptions = await client.async_get_zone_descriptions()
+            self._partitions_data = await client.async_get_partition_statuses()
             LOGGER.debug(
-                "Fetched %d zone descriptions for %s",
+                "Fetched %d zone descriptions and %d partitions for %s",
                 len(self._zone_descriptions),
+                len(self._partitions_data),
                 self.config_entry.entry_id,
             )
         except KseniaLaresApiClientAuthenticationError as exception:
-            LOGGER.warning("Authentication error during zone description fetch - %s", exception)
+            LOGGER.warning("Authentication error during setup - %s", exception)
             raise ConfigEntryAuthFailed(
                 translation_domain="ksenia",
                 translation_key="authentication_failed",
             ) from exception
         except KseniaLaresApiClientError as exception:
-            LOGGER.exception("Error fetching zone descriptions")
+            LOGGER.exception("Error during setup")
             raise UpdateFailed(
                 translation_domain="ksenia",
                 translation_key="update_failed",
@@ -111,9 +114,19 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         """Return the list of zone descriptions fetched at setup."""
         return self._zone_descriptions
 
+    @property
+    def _partitions(self) -> dict[str, str]:
+        """Return the partition statuses property."""
+        return self._partitions_data
+
+    @property
+    def partitions(self) -> dict[str, str]:
+        """Return the partition statuses."""
+        return self._partitions_data
+
     async def _async_update_data(self) -> KseniaLaresCoordinatorData:
         """
-        Poll zone statuses from the Ksenia Lares panel.
+        Poll zone and partition statuses from the Ksenia Lares panel.
 
         Called automatically on each update_interval tick. Updates the
         status and bypass state for every zone. Zone descriptions remain
@@ -130,14 +143,15 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         client = self.config_entry.runtime_data.client
         try:
             statuses = await client.async_get_zone_statuses()
+            self._partitions_data = await client.async_get_partition_statuses()
         except KseniaLaresApiClientAuthenticationError as exception:
-            LOGGER.warning("Authentication error during zone status update - %s", exception)
+            LOGGER.warning("Authentication error during status update - %s", exception)
             raise ConfigEntryAuthFailed(
                 translation_domain="ksenia",
                 translation_key="authentication_failed",
             ) from exception
         except KseniaLaresApiClientError as exception:
-            LOGGER.exception("Error communicating with API during zone status update")
+            LOGGER.exception("Error communicating with API during status update")
             raise UpdateFailed(
                 translation_domain="ksenia",
                 translation_key="update_failed",
@@ -163,4 +177,4 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
                     )
                 )
 
-        return KseniaLaresCoordinatorData(zones=zones)
+        return KseniaLaresCoordinatorData(zones=zones, partitions=self._partitions_data)

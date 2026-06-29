@@ -9,6 +9,7 @@ from custom_components.ksenia.service_actions.example_service import (
     async_handle_example_action,
     async_handle_reload_data,
 )
+from custom_components.ksenia.service_actions.run_scenario import async_handle_run_scenario
 from homeassistant.core import ServiceCall
 
 if TYPE_CHECKING:
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
 # Service action names - only used within service_actions module
 SERVICE_EXAMPLE_ACTION = "example_action"
 SERVICE_RELOAD_DATA = "reload_data"
+SERVICE_RUN_SCENARIO = "run_scenario"
 
 
 async def async_setup_services(hass: HomeAssistant) -> None:
@@ -56,6 +58,10 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         for entry in entries:
             await async_handle_reload_data(hass, entry, call)
 
+    async def handle_run_scenario(call: ServiceCall) -> None:
+        """Handle the run_scenario service call."""
+        await async_handle_run_scenario(hass, call)
+
     # Register services (only once at component level)
     if not hass.services.has_service(DOMAIN, SERVICE_EXAMPLE_ACTION):
         hass.services.async_register(
@@ -69,6 +75,13 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             DOMAIN,
             SERVICE_RELOAD_DATA,
             handle_reload_data,
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_RUN_SCENARIO):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_RUN_SCENARIO,
+            handle_run_scenario,
         )
 
     LOGGER.debug("Services registered for %s", DOMAIN)

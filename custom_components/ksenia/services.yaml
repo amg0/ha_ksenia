@@ -28,3 +28,18 @@ example_action:
 reload_data:
   name: Reload Data
   description: Force a refresh of the integration data from the API
+
+run_scenario:
+  name: Run Scenario
+  description: Run a Ksenia scenario by name using a target entity
+  target:
+    entity:
+      integration: ksenia
+  fields:
+    scenario_name:
+      name: Scenario Name
+      description: The name of the scenario to execute
+      required: true
+      example: "Arm Away"
+      selector:
+        text:

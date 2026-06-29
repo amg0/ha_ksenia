@@ -30,3 +30,9 @@ class KseniaLaresCoordinatorData:
     """Data returned by the coordinator on every update."""
 
     zones: list[KseniaLaresZone] = field(default_factory=list)
+    partitions: dict[str, str] = field(default_factory=dict)
+
+    @property
+    def _partitions(self) -> dict[str, str]:
+        """Return the partition statuses."""
+        return self.partitions

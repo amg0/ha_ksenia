@@ -14,6 +14,7 @@ from homeassistant.components.binary_sensor import BinarySensorDeviceClass, Bina
 from homeassistant.const import EntityCategory
 
 from .connectivity import KseniaLaresConnectivitySensor
+from .partition import KseniaLaresPartitionBinarySensor
 from .zone_motion import KseniaLaresZoneMotionSensor
 
 if TYPE_CHECKING:
@@ -30,7 +31,7 @@ async def async_setup_entry(
     """Set up the binary_sensor platform.
 
     Creates one motion or door sensor per zone discovered at coordinator setup,
-    plus a single connectivity diagnostic sensor.
+    plus partition status lock sensors and a single connectivity diagnostic sensor.
     """
     coordinator = entry.runtime_data.coordinator
     zone_configuration: dict[str, BinarySensorDeviceClass] = entry.data["zone_configurations"]
@@ -51,6 +52,22 @@ async def async_setup_entry(
         for zone in coordinator.data.zones
     ]
 
+    # Create lock binary sensors for each partition
+    partition_entities = []
+    if coordinator.data and coordinator.data.partitions:
+        partition_entities = [
+            KseniaLaresPartitionBinarySensor(
+                coordinator=coordinator,
+                entity_description=BinarySensorEntityDescription(
+                    key=f"partition_{name}",
+                    device_class=BinarySensorDeviceClass.LOCK,
+                    has_entity_name=True,
+                ),
+                partition_name=name,
+            )
+            for name in coordinator.data.partitions
+        ]
+
     # Create the API connectivity diagnostic sensor
     connectivity_entities = [
         KseniaLaresConnectivitySensor(
@@ -66,4 +83,4 @@ async def async_setup_entry(
         )
     ]
 
-    async_add_entities([*zone_entities, *connectivity_entities])
+    async_add_entities([*zone_entities, *partition_entities, *connectivity_entities])
