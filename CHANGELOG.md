@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/amg0/ha_ksenia/compare/v0.1.1...v0.2.0) (2026-06-29)
+
+
+### Features
+
+* add new API for scenario detection and a custom service to run a scenario ([3f56498](https://github.com/amg0/ha_ksenia/commit/3f56498dfcd2ca153a76fccf1e92a4b6ecbba0cf))
+* version bump ([756738c](https://github.com/amg0/ha_ksenia/commit/756738c2feda5d5240e28f37fb1db8cf3852cd2f))
+
 ## [0.1.1](https://github.com/amg0/ha_ksenia/compare/v0.1.0...v0.1.1) (2026-06-26)
 
 
