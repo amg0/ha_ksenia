@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/amg0/ha_ksenia/compare/v0.2.0...v0.2.1) (2026-07-01)
+
+
+### Features
+
+* Button platform to trigger the execution of a KSenia Scenario when the button is clicked ([edad721](https://github.com/amg0/ha_ksenia/commit/edad721ad09e933a2645b1d5c8bd2b96e530989b))
+
 ## [0.2.0](https://github.com/amg0/ha_ksenia/compare/v0.1.1...v0.2.0) (2026-06-29)
 
 
