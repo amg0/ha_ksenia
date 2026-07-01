@@ -275,7 +275,7 @@ class KseniaLaresApiClient:
         url = (
             f"{self._base_url}/xml/cmd/cmdOk.xml?cmd=setMacro&macroId={scenario_id}&redirectPage=/xml/cmd/cmdError.xml"
         )
-        if pin is not None:
+        if pin is not None and pin != "":
             url += f"&pin={pin}"
 
         return await self._api_wrapper(url=url)

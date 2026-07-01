@@ -33,7 +33,6 @@ async def async_setup_entry(
     async_add_entities(
         KseniaLaresButton(
             coordinator=entry.runtime_data.coordinator,
-            api=entry.runtime_data.client,
             entity_description=ButtonEntityDescription(
                 key=f"{scenario.id}",
                 name=f"{scenario.name}",

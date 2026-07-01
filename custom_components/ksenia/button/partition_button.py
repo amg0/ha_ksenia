@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api import KseniaLaresApiClientError
-from custom_components.ksenia.api.client import KseniaLaresApiClient
 from custom_components.ksenia.const import LOGGER
 from custom_components.ksenia.entity import KseniaLaresEntity
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
@@ -36,12 +35,10 @@ class KseniaLaresButton(ButtonEntity, KseniaLaresEntity):
     def __init__(
         self,
         coordinator: KseniaLaresDataUpdateCoordinator,
-        api: KseniaLaresApiClient,
         entity_description: ButtonEntityDescription,
     ) -> None:
         """Initialize the button."""
         super().__init__(coordinator, entity_description)
-        self._api = api
 
     async def async_press(self) -> None:
         """
@@ -53,13 +50,17 @@ class KseniaLaresButton(ButtonEntity, KseniaLaresEntity):
         Demo: This also affects the filter_life sensor - watch it jump to 100%!
         """
         scenarioid = int(self.entity_description.key)
-        client = self._api
         scenario_list = self.coordinator.scenarios
         scenario = next((s for s in scenario_list if s.id == scenarioid), None)
         if scenario is not None:
             try:
-                xml = await client.async_run_scenario(scenario_id=scenario.id, pin=None)
-                LOGGER.debug("Scenario %s executed successfully. Response: %s", scenario.name, xml)
+                xml = await self.coordinator.config_entry.runtime_data.client.async_run_scenario(
+                    scenario_id=scenario.id, pin=self.coordinator.config_entry.options.get("pin", None)
+                )
+                if "cmdSent" in xml:
+                    LOGGER.debug("Scenario %s executed successfully. Response: %s", scenario.name, xml)
+                else:
+                    LOGGER.warning("Scenario %s execution failed. Response: %s", scenario.name, xml)
             except KseniaLaresApiClientError as exception:
                 msg = f"Failed to reset filter: {exception}"
                 raise HomeAssistantError(msg) from exception

@@ -73,6 +73,7 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         # Zone descriptions, populated during _async_setup
         self._zone_descriptions: list[str] = []
         self._partitions_data: dict[str, str] = {}
+        self._scenarios: list[KSeniaLaresScenario] = []
 
     async def _async_setup(self) -> None:
         """
@@ -93,9 +94,10 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
             self._partitions_data = await client.async_get_partition_statuses()
             self._scenarios = await client.async_get_scenarios()
             LOGGER.debug(
-                "Fetched %d zone descriptions and %d partitions for %s",
+                "Fetched %d zone descriptions, %d partitions , %d scenarios for %s",
                 len(self._zone_descriptions),
                 len(self._partitions_data),
+                len(self._scenarios),
                 self.config_entry.entry_id,
             )
         except KseniaLaresApiClientAuthenticationError as exception:
