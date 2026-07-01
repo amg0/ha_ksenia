@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/amg0/ha_ksenia/compare/v0.2.1...v0.2.2) (2026-07-01)
+
+
+### Bug Fixes
+
+* add PIN code to run scenario command and tested working. ([59ace93](https://github.com/amg0/ha_ksenia/commit/59ace937e4553586b98753a2aa113e54e2624782))
+
 ## [0.2.1](https://github.com/amg0/ha_ksenia/compare/v0.2.0...v0.2.1) (2026-07-01)
 
 
