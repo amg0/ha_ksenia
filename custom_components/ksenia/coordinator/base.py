@@ -15,6 +15,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api import KseniaLaresApiClientAuthenticationError, KseniaLaresApiClientError
+from custom_components.ksenia.api.client import KSeniaLaresScenario
 from custom_components.ksenia.const import LOGGER
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -90,6 +91,7 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         try:
             self._zone_descriptions = await client.async_get_zone_descriptions()
             self._partitions_data = await client.async_get_partition_statuses()
+            self._scenarios = await client.async_get_scenarios()
             LOGGER.debug(
                 "Fetched %d zone descriptions and %d partitions for %s",
                 len(self._zone_descriptions),
@@ -115,14 +117,14 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         return self._zone_descriptions
 
     @property
-    def _partitions(self) -> dict[str, str]:
+    def partitions(self) -> dict[str, str]:
         """Return the partition statuses property."""
         return self._partitions_data
 
     @property
-    def partitions(self) -> dict[str, str]:
-        """Return the partition statuses."""
-        return self._partitions_data
+    def scenarios(self) -> list[KSeniaLaresScenario]:
+        """Return the scenarios."""
+        return self._scenarios
 
     async def _async_update_data(self) -> KseniaLaresCoordinatorData:
         """

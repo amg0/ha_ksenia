@@ -14,6 +14,8 @@ https://developers.home-assistant.io/docs/creating_integration_manifest
 from __future__ import annotations
 
 from datetime import timedelta
+import json
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME, Platform
@@ -34,10 +36,17 @@ if TYPE_CHECKING:
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
 ]
 
 # This integration is configured via config entries only
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+# small synchronous function to read the file content
+def _get_manifest_data(path: Path) -> dict:
+    """Lecture synchrone du manifest (exécutée dans un thread séparé)."""
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
@@ -55,6 +64,23 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         True if setup was successful.
 
     """
+    # Path(__file__) gives path of this file (__init__.py)
+    # .parent gets the folder containing that file
+    integration_dir = Path(__file__).parent
+    manifest_path = integration_dir / "manifest.json"
+    try:
+        # manifest_path.read_text() ouvre, lit et ferme le fichier automatiquement
+        # On utilise l'executor pour ne pas bloquer l'event loop [4]
+        manifest_data = await hass.async_add_executor_job(_get_manifest_data, manifest_path)
+        version = manifest_data.get("version", "unknown")
+        name = manifest_data.get("name", "noname for Integration")
+
+        LOGGER.info("Starting Integration %s (Version: %s)", name, version)
+    except FileNotFoundError:
+        LOGGER.error("File manifest.json cannot be found in %s", integration_dir)
+    except ValueError as err:
+        LOGGER.error("Erreur lors de la lecture du manifest : %s", err)
+
     await async_setup_services(hass)
     return True
 

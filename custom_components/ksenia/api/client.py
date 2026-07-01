@@ -11,6 +11,7 @@ https://developers.home-assistant.io/docs/api_lib_index
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
 import socket
 
 import aiohttp
@@ -31,6 +32,15 @@ class KseniaLaresApiClientAuthenticationError(
     KseniaLaresApiClientError,
 ):
     """Exception to indicate an authentication error with the API."""
+
+
+@dataclass(slots=True)
+class KSeniaLaresScenario:
+    """Représentation d'un scénario Ksenia Lares."""
+
+    name: str
+    id: int
+    nopin: bool
 
 
 def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
@@ -200,7 +210,7 @@ class KseniaLaresApiClient:
 
         return statuses
 
-    async def async_get_scenarios(self) -> list[dict[str, str | int | bool]]:
+    async def async_get_scenarios(self) -> list[KSeniaLaresScenario]:
         """
         Fetch available scenarios from the Ksenia controller.
 
@@ -229,7 +239,7 @@ class KseniaLaresApiClient:
         opt_root = ElementTree.fromstring(opt_xml)
         options = opt_root.findall("scenario")
 
-        scenarios: list[dict[str, str | int | bool]] = []
+        scenarios: list[KSeniaLaresScenario] = []
         for idx, name in enumerate(descriptions):
             if idx >= len(options):
                 break
@@ -241,13 +251,7 @@ class KseniaLaresApiClient:
             nopin = (nopin_el.text or "").strip().upper() if nopin_el is not None else ""
 
             if abil == "TRUE":
-                scenarios.append(
-                    {
-                        "id": idx,
-                        "name": name,
-                        "nopin": nopin == "TRUE",
-                    }
-                )
+                scenarios.append(KSeniaLaresScenario(name=name, id=idx, nopin=nopin == "TRUE"))
 
         return scenarios
 

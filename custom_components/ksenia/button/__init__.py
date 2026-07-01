@@ -9,9 +9,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.const import PARALLEL_UPDATES as PARALLEL_UPDATES
-from homeassistant.components.button import ButtonEntityDescription
+from homeassistant.components.button import ButtonDeviceClass, ButtonEntityDescription
 
-from .reset_filter import ENTITY_DESCRIPTIONS as RESET_DESCRIPTIONS, KseniaLaresButton
+from .partition_button import KseniaLaresButton
 
 if TYPE_CHECKING:
     from custom_components.ksenia.data import KseniaLaresConfigEntry
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 # Combine all entity descriptions from different modules
-ENTITY_DESCRIPTIONS: tuple[ButtonEntityDescription, ...] = (*RESET_DESCRIPTIONS,)
+# ENTITY_DESCRIPTIONS: tuple[ButtonEntityDescription, ...] = (*RESET_DESCRIPTIONS,)
 
 
 async def async_setup_entry(
@@ -28,10 +28,21 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the button platform."""
+    coordinator = entry.runtime_data.coordinator
+
     async_add_entities(
         KseniaLaresButton(
             coordinator=entry.runtime_data.coordinator,
-            entity_description=entity_description,
+            api=entry.runtime_data.client,
+            entity_description=ButtonEntityDescription(
+                key=f"{scenario.id}",
+                name=f"{scenario.name}",
+                # translation_key="reset_filter",
+                icon="mdi:alarm-light-outline",
+                device_class=ButtonDeviceClass.RESTART,
+                # entity_category=EntityCategory.CONFIG,
+                has_entity_name=True,
+            ),
         )
-        for entity_description in ENTITY_DESCRIPTIONS
+        for scenario in coordinator.scenarios
     )
