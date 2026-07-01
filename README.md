@@ -27,19 +27,14 @@ Uncomment and customize these badges if you want to use them:
 - **Connectivity Tracking**: Real-time tracking of API connection status
 - **Reconfigurable**: Change credentials anytime without removing the integration
 - **Options Flow**: Adjust settings like update interval after setup
-- **Service Actions**: Force data refresh via service calls
+- **Service Actions**: Force data refresh via service calls, Trigger the execution of a KSenia Alarm Scenario
 
 **This integration will set up the following platforms.**
 
-| Platform        | Description                                               |
-| --------------- | --------------------------------------------------------- |
-| `binary_sensor` | API connectivity and zone motion or door sensor detection |
-| `service`       | Manual data reload and example actions                    |
-
-> [!TIP]
-> **Interactive Demo:** The entities are interconnected for demonstration.
-> Press the **Reset Filter Timer** button to see **Filter Life Remaining** update to 100%.
-> Changing the **Air Purifier** fan speed syncs the **Fan Speed** select, and vice versa.
+| Platform        | Description                                                        |
+| --------------- | ------------------------------------------------------------------ |
+| `binary_sensor` | API connectivity, partition armed status, zone motion/door sensors |
+| `button`        | Scenario execution buttons for each configured alarm scenario      |
 
 ## 🚀 Quick Start
 
@@ -82,9 +77,11 @@ Click the button below to open the configuration dialog:
 
 Follow the setup wizard:
 
-1. Enter your username
-2. Enter your password
-3. Click Submit
+1. Enter the KSenia ip address or host name
+2. Enter the port number
+3. Enter your username
+4. Enter your password
+5. Click Submit
 
 That's it! The integration will start loading your data.
 
@@ -107,23 +104,24 @@ After setup, you can adjust options:
    - user name
    - password
 
-At this point the connectivity will be checked to inssure proper IP & credentials are entered. You can also **Reconfigure** your credentials anytime without removing the integration.
+At this point the connectivity will be checked to ensure proper IP & credentials are entered. You can also **Reconfigure** your credentials anytime without removing the integration.
 
-In a second dialog, you will be asked to enter
+In a second dialog, you will be asked to enter:
 
 1. Update interval (how often to refresh data in seconds)
-2. a PIN number used to execute alarm scenario ( not implemented yet )
+2. A PIN number used to execute alarm scenarios
 
-In a third dialog, you will be presented with all the alarm zone detected and you will be asked to enter a choice for each zone
+In a third dialog, you will be presented with all the alarm zones detected and you will be asked to specify the type for each zone:
 
-1. either it is a motion detector
-2. or it is a contactor ( door, window, etc )
+1. Motion detector
+2. Contact sensor (door, window, etc.)
 
 ### Step 4: Start Using!
 
-The integration creates an entity for each KSenia declared zone:
+The integration creates entities for each KSenia component detected on your alarm panel:
 
-- **Binary Sensors**: API connection status, per zone sensor ( Motion or Door )
+- **Binary Sensors**: API connection status, partition status (per partition), zone sensors (motion or door)
+- **Buttons**: One button per configured alarm scenario
 
 Find all entities in **Settings** → **Devices & Services** → **Ksenia Lares** → click on the device.
 
@@ -131,34 +129,71 @@ Find all entities in **Settings** → **Devices & Services** → **Ksenia Lares*
 
 ### Binary Sensors
 
-- **API Connection**: Shows whether the connection to the API is active
-  - On: Connected and receiving data
-  - Off: Connection lost or authentication failed
-  - Shows update interval and API endpoint information
-- **Motion detector**:
-  - Alerts when KSenia motion sensors detects motion
-- **Door sensor**:
-  - Alerts when an opening ( door, window ) is opened
+#### API Connection
+
+Shows whether the connection to the KSenia panel is active.
+
+| State | Meaning                                  |
+| ----- | ---------------------------------------- |
+| `on`  | Connected and receiving data             |
+| `off` | Connection lost or authentication failed |
+
+**Attributes:**
+
+| Attribute         | Type  | Description                        |
+| ----------------- | ----- | ---------------------------------- |
+| `update_interval` | `str` | Current update interval in seconds |
+
+#### Partition Status
+
+Reports the status of each alarm partition on your KSenia panel. One entity is created per partition.
+
+| State | Meaning                          |
+| ----- | -------------------------------- |
+| `on`  | Partition is DISARMED (unlocked) |
+| `off` | Partition is armed               |
+
+**Attributes:**
+
+| Attribute          | Type  | Description                                                             |
+| ------------------ | ----- | ----------------------------------------------------------------------- |
+| `partition_status` | `str` | Current partition status (e.g., `DISARMED`, `ARMED_HOME`, `ARMED_AWAY`) |
+
+#### Zone Sensors
+
+Reports the status of each alarm zone. Zones are dynamically detected from your KSenia hardware and can be configured as either **Motion** or **Door/Contact** type during setup (third config flow phase).
+
+**Motion sensor:**
+
+| State | Meaning                                     |
+| ----- | ------------------------------------------- |
+| `on`  | Motion detected (zone status is not NORMAL) |
+| `off` | No motion (zone status is NORMAL)           |
+
+**Door/Contact sensor:**
+
+| State | Meaning                             |
+| ----- | ----------------------------------- |
+| `on`  | Contact opened (door/window open)   |
+| `off` | Contact closed (door/window closed) |
+
+Zone entities are created dynamically based on your KSenia hardware. Each zone's device class is determined by the selection you made during setup.
+
+### Buttons
+
+#### Scenario Button
+
+One button is created for each alarm scenario configured on your KSenia panel. Pressing the button executes the corresponding scenario.
+
+**Requires:** A PIN code must be entered in the integration options for scenarios to execute successfully.
 
 ## Custom Services
 
 The integration provides services for advanced automation:
 
-### `ksenia.example_action`
-
-Perform a custom action (customize this for your needs).
-
-**Example:**
-
-```yaml
-service: ksenia.example_action
-data:
-  # Add your parameters here
-```
-
 ### `ksenia.reload_data`
 
-Manually refresh data from the API without waiting for the update interval.
+Manually refresh data from the API without waiting for the configured update interval.
 
 **Example:**
 
@@ -166,7 +201,31 @@ Manually refresh data from the API without waiting for the update interval.
 service: ksenia.reload_data
 ```
 
-Use these services in automations or scripts for more control.
+Use this service in automations or scripts when you need immediate data refresh (e.g., after arming/disarming the alarm manually).
+
+### `ksenia.run_scenario`
+
+Execute a KSenia alarm scenario by name on a target entity. This requires a PIN code to be configured in the integration options.
+
+**Fields:**
+
+| Field           | Required | Type  | Description                         | Example      |
+| --------------- | -------- | ----- | ----------------------------------- | ------------ |
+| `scenario_name` | Yes      | `str` | The name of the scenario to execute | `"Arm Away"` |
+
+**Example:**
+
+```yaml
+service: ksenia.run_scenario
+data:
+  target:
+    entity:
+      - sensor.kitchen_motion
+  scenario_name: "Arm Away"
+```
+
+> [!NOTE]
+> The PIN code must be set in the integration options (Settings → Devices & Services → Ksenia Lares → Configure) for scenarios to execute successfully.
 
 ## Configuration Options
 
@@ -185,15 +244,23 @@ You can change these anytime by clicking **Configure**:
 
 | Name            | Default | Description               |
 | --------------- | ------- | ------------------------- |
-| Update Interval | 1 hour  | How often to refresh data |
+| Update Interval | 15 sec  | How often to refresh data |
 
 ### Third Phase
 
 You can change these anytime by clicking **Configure**:
 
-| Name                 | Default | Description                                     |
-| -------------------- | ------- | ----------------------------------------------- |
-| For Each Ksenia Zone | MOTION  | a choice between MOTION detector or DOOR sensor |
+| Name                 | Default | Description                                                          |
+| -------------------- | ------- | -------------------------------------------------------------------- |
+| Zone Type (per zone) | MOTION  | Choose MOTION detector or DOOR contact sensor for each detected zone |
+
+## Supported Devices
+
+This integration supports Ksenia Lares alarm panels. The following components are auto-detected from your hardware:
+
+- **Partitions**: Each alarm partition on the panel becomes a binary sensor
+- **Zones**: Each physical zone (motion detector, door/window contact, etc.) becomes a binary sensor
+- **Scenarios**: Each configured alarm scenario becomes an executable button entity
 
 ## Troubleshooting
 
