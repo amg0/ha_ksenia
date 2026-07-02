@@ -18,13 +18,15 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from homeassistant.components.http import StaticPathConfig
+from homeassistant.components.lovelace.resources import ResourceStorageCollection
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME, Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import KseniaLaresApiClient
-from .const import CONF_REFRESH_PERIOD, DEFAULT_REFRESH_PERIOD, DOMAIN, LOGGER
+from .const import CONF_REFRESH_PERIOD, DEFAULT_REFRESH_PERIOD, DOMAIN, LOGGER, URL_BASE
 from .coordinator import KseniaLaresDataUpdateCoordinator
 from .data import KseniaLaresData
 from .service_actions import async_setup_services
@@ -82,6 +84,58 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         LOGGER.error("Erreur lors de la lecture du manifest : %s", err)
 
     await async_setup_services(hass)
+
+    # 1. Cibler le dossier contenant le JS sur le disque
+    frontend_dir = Path(__file__).parent / "frontend"
+    LOGGER.debug(f"async_setup() - frontend dir {frontend_dir}")
+
+    if frontend_dir.exists():
+        # 2. Enregistrer la route HTTP statique avec la nouvelle API asynchrone
+        # cache_headers=False est recommandé en développement. À passer à True en production.
+        await hass.http.async_register_static_paths(
+            [StaticPathConfig(URL_BASE, str(frontend_dir), cache_headers=False)]
+        )
+
+        # 3. Enregistrer la carte dans les resources Lovelace (Nouvelle API)
+        if "lovelace" in hass.data:
+            lovelace = hass.data["lovelace"]
+
+            # since HA 2026.2, resources is an attribute direct of object lovelace
+            resources: ResourceStorageCollection | None = getattr(lovelace, "resources", None)
+
+            if resources:
+                # Action critique : forcer le chargement de la collection pour ne pas écraser les données existantes
+                await resources.async_get_info()
+
+                base_file_url = f"{URL_BASE}/ksenia-security-card.js"
+                card_url = f"{base_file_url}?v={version}"
+
+                resource_id = None
+                needs_update = False
+
+                # Parcourir les resources existantes pour identifier si la carte est déjà là
+                for item in resources.async_items():
+                    if item.get("url", "").startswith(base_file_url):
+                        resource_id = item.get("id")
+                        # Détecter si la version (paramètre v=...) a changé
+                        if item.get("url") != card_url:
+                            needs_update = True
+                        break
+
+                # Mettre à jour la resource existante ou la créer
+                if resource_id and needs_update:
+                    await resources.async_update_item(resource_id, {"res_type": "module", "url": card_url})
+                    LOGGER.info("resource Lovelace updated successfully : %s", card_url)
+                elif not resource_id:
+                    await resources.async_create_item({"res_type": "module", "url": card_url})
+                    LOGGER.info("New resource Lovelace added : %s", card_url)
+        else:
+            LOGGER.warning("Lovelace component is not loaded. impossible to add the resource.")
+
+        LOGGER.info("Lovelace resource loaded with success : %s", card_url)
+    else:
+        LOGGER.warning("The frontend folder does not exist or is not reachable : %s", frontend_dir)
+
     return True
 
 
