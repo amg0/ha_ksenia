@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/amg0/ha_ksenia/compare/v0.2.3...v0.2.4) (2026-07-03)
+
+
+### Features
+
+* first working lovelace card version ([d2fb619](https://github.com/amg0/ha_ksenia/commit/d2fb619edd3c7ec1194db85c5ca2772e63f2aa41))
+
 ## [0.2.3](https://github.com/amg0/ha_ksenia/compare/v0.2.2...v0.2.3) (2026-07-03)
 
 
