@@ -1,449 +1,622 @@
 /**
- * Ksenia Lares Security Card - high-density Lovelace card.
- *
- * Shows partition status and zone motion sensors in a compact,
- * modern dark-themed layout suitable for wall tablets and mobile.
- *
- * Configuration (yaml):
- *   - type: custom/ksenia-security-card
- *     title: Security (optional)
- *     partitions:
- *       - binary_sensor.partition_main
- *     zones:
- *       - binary_sensor.zone_front_door
- *       - binary_sensor.zone_living_room
- *     show_bypass: true          (default: false)
- *     compact: true              (default: true)
+ * KSenia V3 Lovelace Card
+ * A synthetic and dense dashboard card for GCE KSenia V3 integrations.
  */
 
-import { LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
+// We can load LitElement from the Home Assistant frontend helper if available,
+// otherwise fall back to a public CDN.
+const LitElement = Object.getPrototypeOf(customElements.get("ha-panel-lovelace") || HTMLElement);
+const { html, css } = LitElement.prototype;
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const PARTITION_ICONS = {
-  DISARMED: "hass:shield-open",
-  ARMED_AWAY: "hass:shield-lock",
-  ARMED_HOME: "hass:shield-home",
-  ARMED_NIGHT: "hass:shield-moon",
-  ARMED_VACATION: "hass:shield-check",
-  PENDING: "hass:shield-alert",
-  TRIGGERED: "hass:shield-bash",
-  UNKNOWN: "hass:shield-outline",
+const editorTranslations = {
+  en: {
+    title: "Card Title (Optional)",
+    device_filter: "Device Filter (comma-separated, e.g., KSenia_1, KSenia_2)",
+    device_exclude: "Device Exclude (comma-separated, e.g., light, temperature)",
+    relay_columns: "Relay Columns",
+    input_columns: "Input Columns",
+    analog_columns: "Analog Columns"
+  },
+  fr: {
+    title: "Titre de la carte (Optionnel)",
+    device_filter: "Filtre d'appareil (séparé par des virgules, Ex: KSenia_1, KSenia_2)",
+    device_exclude: "Exclusion d'appareil (séparé par des virgules, Ex: light, temperature)",
+    relay_columns: "Colonnes Relais",
+    input_columns: "Colonnes Entrées",
+    analog_columns: "Colonnes Analogiques"
+  }
 };
 
-const ZONE_ICONS = {
-  on: "hass:motion-sensor",
-  off: "hass:motion-sensor-off",
-};
-
-const PARTITION_COLORS = {
-  DISARMED: "#4caf50",
-  ARMED_AWAY: "#2196f3",
-  ARMED_HOME: "#ff9800",
-  ARMED_NIGHT: "#9c27b0",
-  ARMED_VACATION: "#607d8b",
-  PENDING: "#ffc107",
-  TRIGGERED: "#f44336",
-  UNKNOWN: "#9e9e9e",
-};
-
-const ZONE_COLORS_TRIGGERED = "#f44336";
-const ZONE_COLORS_NORMAL = "#4caf50";
-const ZONE_COLORS_BYPASS = "#ff9800";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function formatPartitionStatus(status) {
-  const labels = {
-    DISARMED: "Disarmed",
-    ARMED_AWAY: "Away",
-    ARMED_HOME: "Home",
-    ARMED_NIGHT: "Night",
-    ARMED_VACATION: "Vacation",
-    PENDING: "Pending",
-    TRIGGERED: "Triggered",
-    UNKNOWN: "Unknown",
-  };
-  return labels[status] ?? status;
-}
-
-function formatZoneName(entityId) {
-  const parts = entityId.split(".");
-  if (parts.length < 2) return entityId;
-  return parts[1].replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-// ---------------------------------------------------------------------------
-// Card element
-// ---------------------------------------------------------------------------
-
-@customElement("ksenia-security-card")
-class KseniaSecurityCard extends LitElement {
-  // Config
-  config = {};
-
-  // Internal state
-  _partitions = [];
-  _zones = [];
-
-  // -----------------------------------------------------------------------
-  // Lifecycle
-  // -----------------------------------------------------------------------
-
-  setConfig(config) {
-    this.config = {
-      ...config,
-      show_bypass: config.show_bypass ?? false,
-      compact: config.compact !== false,
+class KSeniaV3Card extends LitElement {
+  static get properties() {
+    return {
+      hass: { type: Object },
+      config: { type: Object }
     };
   }
 
-  updated(changedProps) {
-    if (!this.hass || !this.config) return;
-
-    // Re-compute partition states
-    const newPartitions = [];
-    for (const entityId of this.config.partitions ?? []) {
-      const stateObj = this.hass.states[entityId];
-      if (!stateObj) continue;
-      const isDisarmed = stateObj.state === "on";
-      const status = stateObj.attributes?.partition_status ?? "UNKNOWN";
-      newPartitions.push({ entityId, isDisarmed, status });
-    }
-
-    // Re-compute zone states
-    const newZones = [];
-    for (const entityId of this.config.zones ?? []) {
-      const stateObj = this.hass.states[entityId];
-      if (!stateObj) continue;
-      const triggered = stateObj.state === "on";
-      const bypassed = stateObj.attributes?.bypass === "BYPASS" || false;
-      newZones.push({
-        entityId,
-        triggered,
-        bypassed,
-        name: this.config.compact ? formatZoneName(entityId) : "",
-      });
-    }
-
-    this._partitions = newPartitions;
-    this._zones = newZones;
-  }
-
-  // -----------------------------------------------------------------------
-  // Render helpers (LitElement uses html tagged template literals)
-  // -----------------------------------------------------------------------
-
-  render() {
-    if (!this.hass) return "";
-
-    const title = this.config.title ?? "Security";
-    const showBypass = this.config.show_bypass ?? false;
-    const compact = this.config.compact !== false;
-
-    return `
-      <div class="card ${compact ? "compact" : ""}">
-        <div class="card-header">${title}</div>
-        <div class="content">
-          ${this._renderPartitions()} ${this._renderZones(showBypass)}
-        </div>
-      </div>
-    `;
-  }
-
-  _renderPartitions() {
-    if (this._partitions.length === 0) return "";
-
-    return this._partitions.map((p) => this._renderPartition(p)).join("");
-  }
-
-  _renderPartition(p) {
-    const color = PARTITION_COLORS[p.status] ?? PARTITION_COLORS.UNKNOWN;
-    const icon = PARTITION_ICONS[p.status] ?? PARTITION_ICONS.UNKNOWN;
-    const label = formatPartitionStatus(p.status);
-    const entityId = p.entityId.split(".").pop() ?? "";
-
-    return `
-      <div class="partition" data-action="toggle-partition" data-entity="${p.entityId}" data-disarmed="${p.isDisarmed}">
-        <div class="partition-indicator" style="background:${color}"></div>
-        <div class="partition-info">
-          <span class="partition-label">${label}</span>
-          <span class="partition-name">${entityId.replace(/_/g, " ")}</span>
-        </div>
-        <ha-icon icon="${icon}" class="partition-icon"></ha-icon>
-      </div>
-    `;
-  }
-
-  _renderZones(showBypass) {
-    if (this._zones.length === 0) return "";
-
-    return this._zones.map((z) => this._renderZone(z, showBypass)).join("");
-  }
-
-  _renderZone(z, showBypass) {
-    let color = ZONE_COLORS_NORMAL;
-    if (z.bypassed) color = ZONE_COLORS_BYPASS;
-    else if (z.triggered) color = ZONE_COLORS_TRIGGERED;
-
-    const icon = z.triggered ? ZONE_ICONS.on : ZONE_ICONS.off;
-    const name = this.config.compact ? "" : formatZoneName(z.entityId);
-    const bypassBadge = showBypass && z.bypassed ? '<span class="zone-bypass-badge">BY</span>' : "";
-
-    return `
-      <div class="zone ${z.triggered ? "triggered" : ""} ${z.bypassed ? "bypassed" : ""}" style="--zone-color: ${color}">
-        <ha-icon icon="${icon}" class="zone-icon"></ha-icon>
-        ${name ? `<span class="zone-name">${name}</span>` : ""}
-        ${bypassBadge}
-      </div>
-    `;
-  }
-
-  // -----------------------------------------------------------------------
-  // Actions
-  // -----------------------------------------------------------------------
-
-  _togglePartition(entityId, isDisarmed) {
-    if (!this.hass) return;
-    this.hass.callService("alarm_control_panel", isDisarmed ? "alarm_arm_away" : "alarm_disarm", {
-      entity_id: entityId,
-    });
-  }
-
-  // -----------------------------------------------------------------------
-  // Styles
-  // -----------------------------------------------------------------------
-
   static get styles() {
-    return `
+    return css`
       :host {
-        --ksenia-primary: #1a73e8;
-        --ksenia-bg: #1e1e2e;
-        --ksenia-surface: #2a2a3e;
-        --ksenia-text: #e0e0e0;
-        --ksenia-text-secondary: #9e9e9e;
-        --ksenia-border: rgba(255, 255, 255, 0.08);
-        --ksenia-radius: 12px;
-        --ksenia-transition: 200ms ease;
-
         display: block;
       }
-
-      .card {
-        background: var(--ksenia-bg);
-        border-radius: var(--ksenia-radius);
-        overflow: hidden;
-        font-family: "Roboto", "Segoe UI", system-ui, sans-serif;
-        color: var(--ksenia-text);
-        transition: box-shadow var(--ksenia-transition);
+      ha-card {
+        background: var(--ha-card-background, var(--card-background-color, #1e1e2e));
+        border-radius: var(--ha-card-border-radius, 12px);
+        border: 1px solid var(--ha-card-border-color, var(--divider-color, #313244));
+        box-shadow: var(--ha-card-box-shadow, none);
+        padding: 16px;
+        color: var(--primary-text-color, #cdd6f4);
+        font-family: var(--paper-font-body1_-_font-family, sans-serif);
       }
-
-      .card.compact {
-        --mdc-typography-button-font-size: 12px;
-      }
-
       .card-header {
-        padding: 16px 20px 8px;
-        font-size: 18px;
-        font-weight: 600;
-        letter-spacing: -0.3px;
-        color: var(--ksenia-text);
-      }
-
-      .content {
-        padding: 4px 12px 12px;
-      }
-
-      /* ---- Partitions ---- */
-      .section.partitions {
         display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 10px;
+        margin-bottom: 12px;
+      }
+      .card-header .title {
+        font-size: 1em;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card-header .status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85em;
+        font-weight: 500;
+      }
+      .status.online {
+        color: #2ecc71;
+      }
+      .status.offline {
+        color: #e74c3c;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: currentColor;
+        box-shadow: 0 0 6px currentColor;
+      }
+      .section-title {
+        display: flex;
+        align-items: center;
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--secondary-text-color, #bac2de);
+        margin: 18px 0 10px 0; /* Légèrement augmenté pour aérer */
+        font-weight: 600;
+      }
+      .section-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background-color: var(--divider-color, rgba(255, 255, 255, 0.1));
+        margin-left: 12px;
+      }
+      .grid {
+        display: grid;
         gap: 8px;
         margin-bottom: 12px;
-        flex-wrap: wrap;
       }
-
-      .partition {
-        flex: 1 1 0;
-        min-width: 140px;
-        background: var(--ksenia-surface);
-        border-radius: 10px;
-        padding: 12px 14px;
+      /* Relay Styles */
+      .relay-grid {
+        grid-template-columns: repeat(var(--relay-columns, 4), 1fr);
+      }
+      .relay-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        padding: 10px 6px;
+        text-align: center;
+        cursor: pointer;
+        font-size: 0.85em;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+        user-select: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .relay-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+      .relay-btn.active {
+        background: rgba(46, 204, 113, 0.15);
+        border-color: #2ecc71;
+        color: #2ecc71;
+        box-shadow: 0 0 8px rgba(46, 204, 113, 0.15);
+      }
+      /* Input Styles */
+      .input-grid {
+        grid-template-columns: repeat(var(--input-columns, 4), 1fr);
+      }
+      .input-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        padding: 8px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .led {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.15);
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+      }
+      .led.active {
+        background-color: #f1c40f;
+        box-shadow: 0 0 8px #f1c40f;
+      }
+      /* Analog Styles */
+      .analog-grid {
+        grid-template-columns: repeat(var(--analog-columns, 2), 1fr);
+        gap: 10px;
+      }
+      .analog-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 10px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         gap: 10px;
-        cursor: pointer;
-        transition: transform var(--ksenia-transition), box-shadow var(--ksenia-transition);
-        border: 1px solid var(--ksenia-border);
       }
-
-      .partition:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-      }
-
-      .partition-indicator {
-        width: 8px;
-        height: 32px;
-        border-radius: 4px;
-        flex-shrink: 0;
-      }
-
-      .partition-info {
-        flex: 1 1 auto;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-
-      .partition-label {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--ksenia-text);
-        line-height: 1.2;
-      }
-
-      .partition-name {
-        font-size: 11px;
-        color: var(--ksenia-text-secondary);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .partition-icon {
-        flex-shrink: 0;
-        color: var(--ksenia-text-secondary);
-      }
-
-      .partition-icon ha-svg-icon {
-        font-size: 24px;
-      }
-
-      /* ---- Zones ---- */
-      .section.zones {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-        gap: 6px;
-      }
-
-      .zone {
-        background: var(--ksenia-surface);
-        border-radius: 8px;
-        padding: 10px 8px;
+      .analog-icon {
+        color: var(--paper-item-icon-color, #3498db);
         display: flex;
         align-items: center;
         justify-content: center;
+        background: rgba(52, 152, 219, 0.1);
+        padding: 8px;
+        border-radius: 50%;
+      }
+      .analog-info {
+        display: flex;
+        flex-direction: column;
+      }
+      .analog-label {
+        font-size: 0.75em;
+        color: var(--secondary-text-color, #bac2de);
+      }
+      .analog-value {
+        font-size: 1.05em;
+        font-weight: 600;
+      }
+      /* Counter Styles */
+      .counter-container {
+        display: flex;
+        flex-direction: column;
         gap: 6px;
-        border: 1.5px solid var(--zone-color, var(--ksenia-border));
-        transition: background var(--ksenia-transition), border-color var(--ksenia-transition);
-        position: relative;
       }
-
-      .zone.triggered {
-        background: color-mix(in srgb, var(--zone-color) 12%, transparent);
-        animation: pulse-zone 2s ease-in-out infinite;
+      .counter-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 8px 12px;
+        border-radius: 6px;
       }
-
-      .zone.bypassed {
-        border-style: dashed;
+      .counter-name {
+        font-size: 0.9em;
       }
-
-      @keyframes pulse-zone {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.85; }
+      .counter-value {
+        font-weight: 600;
+        font-size: 0.95em;
+        margin-left: 4px;
+        color: var(--accent-color, #ff007f);
       }
-
-      .zone-icon {
-        color: var(--zone-color);
-        font-size: 20px;
-        flex-shrink: 0;
-      }
-
-      .zone-icon ha-svg-icon {
-        font-size: 20px;
-      }
-
-      .zone-name {
-        font-size: 10px;
-        color: var(--ksenia-text-secondary);
-        text-align: center;
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .zone-bypass-badge {
-        position: absolute;
-        top: 2px;
-        right: 4px;
-        font-size: 8px;
-        font-weight: 700;
-        color: #ff9800;
-        background: rgba(255, 152, 0, 0.15);
-        padding: 1px 3px;
-        border-radius: 3px;
-      }
-
-      /* ---- Compact mode ---- */
-      .card.compact .card-header {
-        font-size: 16px;
-        padding: 12px 16px 4px;
-      }
-
-      .card.compact .content {
-        padding: 2px 8px 8px;
-      }
-
-      .card.compact .partition {
-        padding: 8px 10px;
-        min-width: 110px;
-      }
-
-      .card.compact .partition-label {
-        font-size: 12px;
-      }
-
-      .card.compact .partition-name {
-        font-size: 10px;
-      }
-
-      .card.compact .section.zones {
-        grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+      .counter-actions {
+        display: flex;
         gap: 4px;
       }
-
-      /* ---- Responsive ---- */
-      @media (max-width: 400px) {
-        .section.partitions {
-          flex-direction: column;
-        }
-        .partition {
-          min-width: unset;
-        }
+      .counter-actions mwc-button {
+        --mdc-theme-primary: var(--primary-text-color);
+      }
+      .counter-btn {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        color: var(--primary-text-color);
+        cursor: pointer;
+        padding: 4px 10px;
+        font-size: 0.85em;
+        font-weight: bold;
+        transition: background 0.1s ease;
+      }
+      .counter-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+      .counter-btn:active {
+        background: rgba(255, 255, 255, 0.25);
       }
     `;
   }
+
+  static getStubConfig() {
+    return {
+      title: "KSenia V3 Panel",
+      relay_columns: 4,
+      input_columns: 4,
+      analog_columns: 2
+    };
+  }
+
+  shouldUpdate(changedProps) {
+    if (changedProps.has('config')) return true;
+
+    if (changedProps.has('hass')) {
+      const oldHass = changedProps.get('hass');
+      if (!oldHass) return true;
+
+      for (const entityId in this.hass.states) {
+        const stateObj = this.hass.states[entityId];
+        if (stateObj.attributes && stateObj.attributes.ipx_key !== undefined) {
+          if (oldHass.states[entityId] !== stateObj) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+
+  render() {
+    if (!this.hass || !this.config) return html``;
+
+    const allIpxEntities = Object.keys(this.hass.states)
+      .map(id => this.hass.states[id])
+      .filter(stateObj => stateObj.attributes && stateObj.attributes.ipx_key !== undefined);
+
+    let filters = [];
+    if (this.config.device_filter) {
+      if (Array.isArray(this.config.device_filter)) {
+        filters = this.config.device_filter.map(f => String(f).trim().toLowerCase()).filter(f => f !== "");
+      } else if (typeof this.config.device_filter === "string") {
+        filters = this.config.device_filter.split(",").map(f => f.trim().toLowerCase()).filter(f => f !== "");
+      } else {
+        filters = [String(this.config.device_filter).trim().toLowerCase()];
+      }
+    }
+
+    let excludes = [];
+    if (this.config.device_exclude) {
+      if (Array.isArray(this.config.device_exclude)) {
+        excludes = this.config.device_exclude.map(f => String(f).trim().toLowerCase()).filter(f => f !== "");
+      } else if (typeof this.config.device_exclude === "string") {
+        excludes = this.config.device_exclude.split(",").map(f => f.trim().toLowerCase()).filter(f => f !== "");
+      } else {
+        excludes = [String(this.config.device_exclude).trim().toLowerCase()];
+      }
+    }
+
+    const entities = allIpxEntities.filter(stateObj => {
+      const entityIdLower = stateObj.entity_id.toLowerCase();
+      const friendlyNameLower = stateObj.attributes.friendly_name ? stateObj.attributes.friendly_name.toLowerCase() : "";
+
+      if (excludes.length > 0) {
+        const matchesExclude = excludes.some(exclude => entityIdLower.includes(exclude) || friendlyNameLower.includes(exclude));
+        if (matchesExclude) return false;
+      }
+
+      if (filters.length === 0) return true;
+      return filters.some(filter => entityIdLower.includes(filter) || friendlyNameLower.includes(filter));
+    });
+
+    const relays = entities.filter(e => e.entity_id.startsWith('switch.'));
+    relays.sort((a, b) => this._sortIpxKeys(a.attributes.ipx_key, b.attributes.ipx_key));
+
+    const inputs = entities.filter(e => e.entity_id.startsWith('binary_sensor.') && e.attributes.ipx_key.startsWith('btn'));
+    inputs.sort((a, b) => this._sortIpxKeys(a.attributes.ipx_key, b.attributes.ipx_key));
+
+    const analogs = entities.filter(e => e.entity_id.startsWith('sensor.') && e.attributes.ipx_key.startsWith('analog'));
+    analogs.sort((a, b) => this._sortIpxKeys(a.attributes.ipx_key, b.attributes.ipx_key));
+
+    const counters = entities.filter(e => e.entity_id.startsWith('sensor.') && e.attributes.ipx_key.startsWith('count'));
+    counters.sort((a, b) => this._sortIpxKeys(a.attributes.ipx_key, b.attributes.ipx_key));
+
+    const connectionEntity = entities.find(e => e.attributes.ipx_key === 'api_connectivity');
+    const isOnline = connectionEntity ? connectionEntity.state === 'on' : true;
+    const statusText = connectionEntity ? (isOnline ? "Online" : "Offline") : "Connected";
+
+    const relayColumns = this.config.relay_columns || 4;
+    const inputColumns = this.config.input_columns || 4;
+    const analogColumns = this.config.analog_columns || 2;
+
+    const cardTitle = this.config.title || (connectionEntity?.attributes.friendly_name ? connectionEntity.attributes.friendly_name.replace(" API connectivity", "") : "KSenia V3 Panel");
+
+    return html`
+      <ha-card style="--relay-columns: ${relayColumns}; --input-columns: ${inputColumns}; --analog-columns: ${analogColumns};">
+        <div class="card-header">
+          <div class="title">
+            <ha-icon icon="mdi:ip-network"></ha-icon>
+            <span>${cardTitle}</span>
+          </div>
+          <div class="status ${isOnline ? 'online' : 'offline'}">
+            <span class="status-dot"></span>
+            <span>${statusText}</span>
+          </div>
+        </div>
+
+        ${relays.length > 0 ? html`
+          <div class="section-title">Relays (Outputs)</div>
+          <div class="grid relay-grid">
+            ${relays.map(stateObj => {
+              const isOn = stateObj.state === 'on';
+              const name = this._cleanEntityName(stateObj, 'relay');
+              return html`
+                <div
+                  class="relay-btn ${isOn ? 'active' : ''}"
+                  title="${stateObj.entity_id}"
+                  @click="${() => this._toggleSwitch(stateObj.entity_id)}"
+                >
+                  ${name}
+                </div>
+              `;
+            })}
+          </div>
+        ` : ''}
+
+        ${inputs.length > 0 ? html`
+          <div class="section-title">Digital Inputs</div>
+          <div class="grid input-grid">
+            ${inputs.map(stateObj => {
+              const isOn = stateObj.state === 'on';
+              const name = this._cleanEntityName(stateObj, 'input');
+              return html`
+                <div class="input-indicator" title="${stateObj.entity_id}">
+                  <span class="led ${isOn ? 'active' : ''}"></span>
+                  <span>${name}</span>
+                </div>
+              `;
+            })}
+          </div>
+        ` : ''}
+
+        ${analogs.length > 0 ? html`
+          <div class="section-title">Analog Inputs</div>
+          <div class="grid analog-grid">
+            ${analogs.map(stateObj => {
+              let val = stateObj.state;
+
+              const numVal = parseFloat(val);
+              if (!isNaN(numVal)) {
+                val = numVal.toFixed(1);
+              }
+
+              const unit = stateObj.attributes.unit_of_measurement || '';
+              const name = this._cleanEntityName(stateObj, 'analog');
+              const deviceClass = stateObj.attributes.device_class;
+              const icon = this._getAnalogIcon(deviceClass);
+              return html`
+                <div class="analog-card" title="${stateObj.entity_id}">
+                  <div class="analog-icon">
+                    <ha-icon icon="${icon}"></ha-icon>
+                  </div>
+                  <div class="analog-info">
+                    <span class="analog-label">${name}</span>
+                    <span class="analog-value">${val} ${unit}</span>
+                  </div>
+                </div>
+              `;
+            })}
+          </div>
+        ` : ''}
+
+        ${counters.length > 0 ? html`
+          <div class="section-title">Counters</div>
+          <div class="counter-container">
+            ${counters.map(stateObj => {
+              const val = stateObj.state;
+              const name = this._cleanEntityName(stateObj, 'counter');
+              return html`
+                <div class="counter-row" title="${stateObj.entity_id}">
+                  <span class="counter-name">
+                    ${name}: <span class="counter-value">${val}</span>
+                  </span>
+                  <div class="counter-actions">
+                    <button class="counter-btn" @click="${() => this._adjustCounter(stateObj.entity_id, -10)}">-10</button>
+                    <button class="counter-btn" @click="${() => this._adjustCounter(stateObj.entity_id, -1)}">-1</button>
+                    <button class="counter-btn" @click="${() => this._adjustCounter(stateObj.entity_id, 1)}">+1</button>
+                    <button class="counter-btn" @click="${() => this._adjustCounter(stateObj.entity_id, 10)}">+10</button>
+                  </div>
+                </div>
+              `;
+            })}
+          </div>
+        ` : ''}
+
+        ${relays.length === 0 && inputs.length === 0 && analogs.length === 0 && counters.length === 0 ? html`
+          <div style="padding: 20px 0; text-align: center; color: var(--secondary-text-color); font-style: italic;">
+            Aucune entité KSenia trouvée.
+          </div>
+        ` : ''}
+      </ha-card>
+    `;
+  }
+
+  _sortIpxKeys(keyA, keyB) {
+    const numA = parseInt(keyA.replace(/^\D+/g, ''), 10);
+    const numB = parseInt(keyB.replace(/^\D+/g, ''), 10);
+    return numA - numB;
+  }
+
+  _cleanEntityName(stateObj, type) {
+    let name = stateObj.attributes.friendly_name || '';
+    if (!name) {
+      const parts = stateObj.entity_id.split('.');
+      return parts[parts.length - 1];
+    }
+    name = name.replace(/^My KSenia V3\s+/i, '');
+    name = name.replace(/^KSenia\s+/i, '');
+    return name;
+  }
+
+  _getAnalogIcon(deviceClass) {
+    switch (deviceClass) {
+      case 'temperature':
+        return 'mdi:thermometer';
+      case 'illuminance':
+        return 'mdi:weather-sunny';
+      case 'humidity':
+        return 'mdi:water-percent';
+      case 'current':
+        return 'mdi:flash';
+      case 'voltage':
+        return 'mdi:sine-wave';
+      case 'ph':
+        return 'mdi:ph';
+      default:
+        return 'mdi:gauge';
+    }
+  }
+
+  _fireHaptic(type = "light") {
+    const event = new Event("haptic", { bubbles: true, composed: true });
+    event.detail = type;
+    this.dispatchEvent(event);
+  }
+
+  _toggleSwitch(entityId) {
+    this._fireHaptic("light");
+    this.hass.callService('switch', 'toggle', { entity_id: entityId });
+  }
+
+  _adjustCounter(entityId, offset) {
+    this._fireHaptic("medium");
+    this.hass.callService('my_KSeniav3', 'adjust_counter_value', {
+      entity_id: entityId,
+      offset: offset
+    });
+  }
+
+  setConfig(config) {
+    this.config = config;
+  }
+
+  getCardSize() {
+    return 3;
+  }
+
+  static getConfigElement() {
+    return document.createElement("KSeniav3-card-editor");
+  }
 }
 
-// ---------------------------------------------------------------------------
-// Register card with Home Assistant
-// ---------------------------------------------------------------------------
+/**
+ * UI Editor for KSenia V3 Card
+ */
+class KSeniaV3CardEditor extends LitElement {
+  static get properties() {
+    return {
+      hass: { type: Object },
+      _config: { type: Object },
+    };
+  }
 
-if (customElements.get("ksenia-security-card") === undefined) {
-  window.customCards = window.customCards || [];
-  window.customCards.push({
-    type: "ksenia-security-card",
-    name: "Ksenia Security",
-    preview: true,
-    description: "High-density security card showing partition and zone status for Ksenia Lares alarm systems.",
-  });
+  setConfig(config) {
+    this._config = config;
+  }
+
+  render() {
+    if (!this.hass || !this._config) {
+      return html``;
+    }
+
+    const schema = [
+      {
+        name: "title",
+        selector: { text: {} }
+      },
+      {
+        name: "device_filter",
+        selector: { text: {} }
+      },
+      {
+        name: "device_exclude",
+        selector: { text: {} }
+      },
+      {
+        name: "",
+        type: "grid",
+        schema: [
+          { name: "relay_columns", selector: { number: { min: 1, max: 8, mode: "box" } } },
+          { name: "input_columns", selector: { number: { min: 1, max: 8, mode: "box" } } },
+          { name: "analog_columns", selector: { number: { min: 1, max: 8, mode: "box" } } }
+        ]
+      }
+    ];
+
+    return html`
+      <ha-form
+        .hass=${this.hass}
+        .data=${this._config}
+        .schema=${schema}
+        .computeLabel=${(schema) => this._computeLabel(schema)}
+        @value-changed=${this._onValueChanged}
+      ></ha-form>
+    `;
+  }
+
+  _computeLabel(schema) {
+    const lang = this.hass?.language || 'en';
+    const baseLang = lang.split('-')[0];
+    const dict = editorTranslations[baseLang] || editorTranslations['en'];
+    return dict[schema.name] || schema.name;
+  }
+
+  _onValueChanged(ev) {
+    if (!this._config || !this.hass) {
+      return;
+    }
+
+    const event = new CustomEvent("config-changed", {
+      detail: { config: ev.detail.value },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
 }
 
-export default KseniaSecurityCard;
+customElements.define('KSeniav3-card', KSeniaV3Card);
+customElements.define("KSeniav3-card-editor", KSeniaV3CardEditor);
+
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: 'KSeniav3-card',
+  name: 'KSenia V3 Card',
+  description: 'A dense synthetic card displaying Relays, Digital Inputs, Analogs, and Counters for KSenia V3 custom integration.',
+  preview: true,
+  documentationURL: 'https://github.com/amg0/ha_KSeniav3',
+
+  getEntitySuggestion: (hass, entityId) => {
+    const entityReg = hass.entities[entityId];
+
+    if (!entityReg || entityReg.platform !== "my_KSeniav3") {
+      return null;
+    }
+
+    return {
+      config: { type: "custom:KSeniav3-card" },
+    };
+  },
+});

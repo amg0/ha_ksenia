@@ -5,12 +5,14 @@
     "@amg0"
   ],
   "config_flow": true,
+  "dependencies": [
+    "http",
+    "lovelace",
+    "webhook"
+  ],
   "documentation": "https://github.com/amg0/ha_ksenia",
   "integration_type": "hub",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/amg0/ha_ksenia/issues",
-  "requirements": [
-    "defusedxml==0.7.1"
-  ],
   "version": "0.2.2"
 }

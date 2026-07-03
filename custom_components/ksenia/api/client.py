@@ -13,9 +13,9 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 import socket
+from xml.etree import ElementTree as ET
 
 import aiohttp
-from defusedxml import ElementTree
 
 
 class KseniaLaresApiClientError(Exception):
@@ -136,7 +136,7 @@ class KseniaLaresApiClient:
         xml_text = await self._api_wrapper(
             url=f"{self._base_url}/xml/zones/zonesDescription16IP.xml",
         )
-        root = ElementTree.fromstring(xml_text)
+        root = ET.fromstring(xml_text)  # noqa: S314
         return [zone.text or "" for zone in root.findall("zone")]
 
     async def async_get_zone_statuses(self) -> list[dict[str, str]]:
@@ -158,7 +158,7 @@ class KseniaLaresApiClient:
         xml_text = await self._api_wrapper(
             url=f"{self._base_url}/xml/zones/zonesStatus16IP.xml",
         )
-        root = ElementTree.fromstring(xml_text)
+        root = ET.fromstring(xml_text)  # noqa: S314
         statuses: list[dict[str, str]] = []
         for zone in root.findall("zone"):
             status_el = zone.find("status")
@@ -191,7 +191,7 @@ class KseniaLaresApiClient:
         desc_xml = await self._api_wrapper(
             url=f"{self._base_url}/xml/partitions/partitionsDescription16IP.xml",
         )
-        desc_root = ElementTree.fromstring(desc_xml)
+        desc_root = ET.fromstring(desc_xml)  # noqa: S314
         # Assuming partition elements contain the name in their text, similar to zones
         descriptions = [p.text or "" for p in desc_root.findall("partition") if p.text]
 
@@ -199,7 +199,7 @@ class KseniaLaresApiClient:
         stat_xml = await self._api_wrapper(
             url=f"{self._base_url}/xml/partitions/partitionsStatus16IP.xml",
         )
-        stat_root = ElementTree.fromstring(stat_xml)
+        stat_root = ET.fromstring(stat_xml)  # noqa: S314
 
         # 3. Combine results into a dictionary <name>:<status>
         statuses: dict[str, str] = {}
@@ -230,13 +230,13 @@ class KseniaLaresApiClient:
         desc_xml = await self._api_wrapper(
             url=f"{self._base_url}/xml/scenarios/scenariosDescription.xml",
         )
-        desc_root = ElementTree.fromstring(desc_xml)
+        desc_root = ET.fromstring(desc_xml)  # noqa: S314
         descriptions = [s.text or "" for s in desc_root.findall("scenario")]
 
         opt_xml = await self._api_wrapper(
             url=f"{self._base_url}/xml/scenarios/scenariosOptions.xml",
         )
-        opt_root = ElementTree.fromstring(opt_xml)
+        opt_root = ET.fromstring(opt_xml)  # noqa: S314
         options = opt_root.findall("scenario")
 
         scenarios: list[KSeniaLaresScenario] = []
