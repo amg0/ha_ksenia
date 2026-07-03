@@ -237,14 +237,32 @@ class KSeniaV3Card extends LitElement {
       .counter-btn:active {
         background: rgba(255, 255, 255, 0.25);
       }
+      /* Zone Styles */
+      .zone-grid {
+        grid-template-columns: repeat(var(--zone-columns, 4), 1fr);
+      }
+      .zone-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        padding: 8px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
     `;
   }
 
-  static getStubConfig() {
-    return {
-      title: "KSenia V3 Panel"
-    };
-  }
+static getStubConfig() {
+  return {
+    title: "KSenia V3 Panel",
+    zone_columns: 4
+  };
+}
 
   shouldUpdate(changedProps) {
     if (changedProps.has('config')) return true;
@@ -255,7 +273,11 @@ class KSeniaV3Card extends LitElement {
 
       for (const entityId in this.hass.states) {
         const stateObj = this.hass.states[entityId];
-        if (stateObj.attributes && stateObj.attributes.device_class === 'connectivity') {
+        const deviceClass = stateObj.attributes && stateObj.attributes.device_class;
+        const isConnectivity = deviceClass === 'connectivity';
+        const isZoneBinary = entityId.startsWith('binary_sensor.') && (deviceClass === 'door' || deviceClass === 'motion');
+
+        if (isConnectivity || isZoneBinary) {
           if (oldHass.states[entityId] !== stateObj) {
             return true;
           }
@@ -265,6 +287,23 @@ class KSeniaV3Card extends LitElement {
     }
     return true;
   }
+/*
+        ${connectionEntity ? html`
+          <div style="text-align: center; padding: 16px 0;">
+            <ha-icon
+              icon="${isOnline ? 'mdi:check-circle' : 'mdi:close-circle'}"
+              style="font-size: 3em; color: ${isOnline ? '#2ecc71' : '#e74c3c'};"
+            ></ha-icon>
+            <div style="margin-top: 12px; font-size: 0.9em; color: var(--secondary-text-color);">
+              ${this._stripKsenia(connectionEntity.attributes.friendly_name) || 'API Connectivity'}
+            </div>
+          </div>
+        ` : html`
+          <div style="padding: 20px 0; text-align: center; color: var(--secondary-text-color); font-style: italic;">
+            No API connectivity sensor found.
+          </div>
+        `}
+*/
 
   render() {
     if (!this.hass || !this.config) return html``;
@@ -276,7 +315,30 @@ class KSeniaV3Card extends LitElement {
     const isOnline = connectionEntity ? connectionEntity.state === 'on' : false;
     const statusText = connectionEntity ? (isOnline ? "Online" : "Offline") : "No sensor";
 
-    const cardTitle = this.config.title || (connectionEntity?.attributes.friendly_name ? connectionEntity.attributes.friendly_name.replace(" API connectivity", "") : "KSenia V3 Panel");
+    const rawTitle = this.config.title || (connectionEntity?.attributes.friendly_name ? connectionEntity.attributes.friendly_name.replace(" API connectivity", "") : "KSenia V3 Panel");
+    const cardTitle = this._stripKsenia(rawTitle);
+
+    // Collect binary zone sensors (door / motion) from hass states
+    const zoneSensors = Object.keys(this.hass.states)
+      .map(id => this.hass.states[id])
+      .filter(s => s.entity_id && s.entity_id.startsWith('binary_sensor.') && s.attributes && (s.attributes.device_class === 'door' || s.attributes.device_class === 'motion'));
+
+    // Enrich sensors with readable labels and sort: doors first, then motion, each group alphabetically by name
+    const zoneItems = zoneSensors.map(sensor => {
+      const isDoor = sensor.attributes.device_class === 'door';
+      const label = isDoor
+        ? (sensor.state === 'on' ? 'Open' : 'Closed')
+        : (sensor.state === 'on' ? 'Motion' : 'No motion');
+      return { sensor, isDoor, label };
+    }).sort((a, b) => {
+      // Primary sort: doors first (0), then others (1)
+      const typeDiff = (a.isDoor ? 0 : 1) - (b.isDoor ? 0 : 1);
+      if (typeDiff !== 0) return typeDiff;
+      // Secondary sort: alphabetical by friendly_name
+      const nameA = a.sensor.attributes.friendly_name || '';
+      const nameB = b.sensor.attributes.friendly_name || '';
+      return nameA.localeCompare(nameB);
+    });
 
     return html`
       <ha-card>
@@ -291,21 +353,24 @@ class KSeniaV3Card extends LitElement {
           </div>
         </div>
 
-        ${connectionEntity ? html`
-          <div style="text-align: center; padding: 16px 0;">
-            <ha-icon
-              icon="${isOnline ? 'mdi:check-circle' : 'mdi:close-circle'}"
-              style="font-size: 3em; color: ${isOnline ? '#2ecc71' : '#e74c3c'};"
-            ></ha-icon>
-            <div style="margin-top: 12px; font-size: 0.9em; color: var(--secondary-text-color);">
-              ${connectionEntity.attributes.friendly_name || 'API Connectivity'}
-            </div>
+        ${zoneItems && zoneItems.length ? html`
+          <div class="section-title">Zones</div>
+          <div class="grid zone-grid" style="--zone-columns: ${this.config.zone_columns || 4}">
+            ${zoneItems.map(item => html`
+              <div class="zone-item" title="${item.sensor.entity_id}">
+                <ha-icon
+                  class="analog-icon"
+                  icon="${item.isDoor ? 'mdi:door' : 'mdi:motion-sensor'}"
+                  style="color: ${item.sensor.state === 'on' ? (item.isDoor ? '#e74c3c' : '#f1c40f') : 'var(--secondary-text-color)'};"
+                ></ha-icon>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.sensor.attributes.friendly_name) || item.sensor.entity_id}</div>
+                  <div style="font-size:0.8em; color:var(--secondary-text-color);">${item.label}</div>
+                </div>
+              </div>
+            `)}
           </div>
-        ` : html`
-          <div style="padding: 20px 0; text-align: center; color: var(--secondary-text-color); font-style: italic;">
-            No API connectivity sensor found.
-          </div>
-        `}
+        ` : html``}
       </ha-card>
     `;
   }
@@ -322,6 +387,12 @@ class KSeniaV3Card extends LitElement {
 
   getCardSize() {
     return 3;
+  }
+
+  _stripKsenia(name) {
+    if (!name || typeof name !== 'string') return name;
+    // Remove occurrences of "Ksenia Lares" (case-insensitive) and trim extra whitespace
+    return name.replace(/Ksenia Lares/gi, '').replace(/\s{2,}/g, ' ').trim();
   }
 
   static getConfigElement() {
@@ -353,6 +424,10 @@ class KSeniaV3CardEditor extends LitElement {
       {
         name: "title",
         selector: { text: {} }
+      },
+      {
+        name: "zone_columns",
+        selector: { number: { min: 1, max: 8, step: 1 } }
       }
     ];
 
