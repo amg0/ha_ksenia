@@ -125,6 +125,33 @@ The integration creates entities for each KSenia component detected on your alar
 
 Find all entities in **Settings** → **Devices & Services** → **Ksenia Lares** → click on the device.
 
+## Configuration Options
+
+### During Setup
+
+| Name     | Required | Description                             |
+| -------- | -------- | --------------------------------------- |
+| Host     | Yes      | Your KSenia IP address or hostname      |
+| Port     | Yes      | Your KSenia Web application port number |
+| Username | Yes      | Your account username                   |
+| Password | Yes      | Your account password                   |
+
+### Second Phase
+
+You can change these anytime by clicking **Configure**:
+
+| Name            | Default | Description               |
+| --------------- | ------- | ------------------------- |
+| Update Interval | 15 sec  | How often to refresh data |
+
+### Third Phase
+
+You can change these anytime by clicking **Configure**:
+
+| Name                 | Default | Description                                                          |
+| -------------------- | ------- | -------------------------------------------------------------------- |
+| Zone Type (per zone) | MOTION  | Choose MOTION detector or DOOR contact sensor for each detected zone |
+
 ## Available Entities
 
 ### Binary Sensors
@@ -227,33 +254,6 @@ data:
 > [!NOTE]
 > The PIN code must be set in the integration options (Settings → Devices & Services → Ksenia Lares → Configure) for scenarios to execute successfully.
 
-## Configuration Options
-
-### During Setup
-
-| Name     | Required | Description                             |
-| -------- | -------- | --------------------------------------- |
-| Host     | Yes      | Your KSenia IP address or hostname      |
-| Port     | Yes      | Your KSenia Web application port number |
-| Username | Yes      | Your account username                   |
-| Password | Yes      | Your account password                   |
-
-### Second Phase
-
-You can change these anytime by clicking **Configure**:
-
-| Name            | Default | Description               |
-| --------------- | ------- | ------------------------- |
-| Update Interval | 15 sec  | How often to refresh data |
-
-### Third Phase
-
-You can change these anytime by clicking **Configure**:
-
-| Name                 | Default | Description                                                          |
-| -------------------- | ------- | -------------------------------------------------------------------- |
-| Zone Type (per zone) | MOTION  | Choose MOTION detector or DOOR contact sensor for each detected zone |
-
 ## Supported Devices
 
 This integration supports Ksenia Lares alarm panels. The following components are auto-detected from your hardware:
@@ -261,6 +261,48 @@ This integration supports Ksenia Lares alarm panels. The following components ar
 - **Partitions**: Each alarm partition on the panel becomes a binary sensor
 - **Zones**: Each physical zone (motion detector, door/window contact, etc.) becomes a binary sensor
 - **Scenarios**: Each configured alarm scenario becomes an executable button entity
+
+## Lovelace Custom Card
+
+This integration includes a built-in Lovelace card called `custom:ksenia-card`.
+
+### Installation
+
+There is nothing special to install for the card. It is included automatically with the integration, so once `Ksenia Lares` is installed and Home Assistant is restarted, the card becomes available in Lovelace.
+
+### Adding the Card to a Dashboard
+
+1. Open your Home Assistant dashboard.
+2. Click the three-dot menu in the top-right corner and choose **Edit Dashboard**.
+3. Click **Add Card**.
+4. Choose **Manual**.
+5. Paste the following YAML, or choose the card type if it appears in the card picker
+6. Save the card.
+
+```yaml
+type: custom:ksenia-card
+title: KSenia V3 Panel
+zone_columns: 4
+```
+
+### Card Configuration Parameters
+
+| Parameter      | Type   | Default           | Description                                                               |
+| -------------- | ------ | ----------------- | ------------------------------------------------------------------------- |
+| `title`        | string | `KSenia V3 Panel` | Optional title text displayed in the card header.                         |
+| `zone_columns` | number | `4`               | Number of columns used to display the zone sensors. Valid values are 1–8. |
+
+### Example Configuration
+
+A simple card configuration with a custom title and 3 columns for zone sensors:
+
+```yaml
+type: custom:ksenia-card
+title: My Alarm Zones
+zone_columns: 3
+```
+
+If you do not specify `zone_columns`, the card defaults to `4`.
 
 ## Troubleshooting
 
