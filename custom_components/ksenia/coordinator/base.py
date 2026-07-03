@@ -15,7 +15,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api import KseniaLaresApiClientAuthenticationError, KseniaLaresApiClientError
-from custom_components.ksenia.api.client import KSeniaLaresScenario
+from custom_components.ksenia.api.client import KSeniaLaresScenario, ZoneBypass, ZoneDescription, ZoneStatus
 from custom_components.ksenia.const import LOGGER
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -71,7 +71,7 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
             always_update=False,
         )
         # Zone descriptions, populated during _async_setup
-        self._zone_descriptions: list[str] = []
+        self._zone_descriptions: list[ZoneDescription] = []
         self._partitions_data: dict[str, str] = {}
         self._scenarios: list[KSeniaLaresScenario] = []
 
@@ -114,7 +114,7 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
             ) from exception
 
     @property
-    def zone_descriptions(self) -> list[str]:
+    def zone_descriptions(self) -> list[ZoneDescription]:
         """Return the list of zone descriptions fetched at setup."""
         return self._zone_descriptions
 
@@ -162,23 +162,20 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
             ) from exception
 
         zones: list[KseniaLaresZone] = []
-        for idx, description in enumerate(self._zone_descriptions):
+        for idx, zonedescription in enumerate(self._zone_descriptions):
             if idx < len(statuses):
                 zone_status = statuses[idx]
                 zones.append(
                     KseniaLaresZone(
                         index=idx,
-                        description=description,
-                        status=zone_status.get("status", "UNKNOWN"),
-                        bypass=zone_status.get("bypass", "UNKNOWN"),
+                        description=zonedescription.description,
+                        status=ZoneStatus(zone_status.get("status", "UNKNOWN")),
+                        bypass=ZoneBypass(zone_status.get("bypass", "UNKNOWN")),
                     )
                 )
-            else:
-                zones.append(
-                    KseniaLaresZone(
-                        index=idx,
-                        description=description,
-                    )
-                )
+            # else:
+            #     zones.append(
+            #         KseniaLaresZone()
+            #     )
 
         return KseniaLaresCoordinatorData(zones=zones, partitions=self._partitions_data)

@@ -88,8 +88,8 @@ class KseniaLaresZoneMotionSensor(BinarySensorEntity, KseniaLaresEntity):
         if zone is None:
             return {}
         return {
-            "zone_status": zone.status,
-            "bypass": zone.bypass,
+            "zone_status": str(zone.status),
+            "bypass": str(zone.bypass),
         }
 
     async def async_added_to_hass(self) -> None:

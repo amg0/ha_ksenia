@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from custom_components.ksenia.api.client import ZoneDescription
 from custom_components.ksenia.config_flow_handler.schemas import (
     get_reauth_schema,
     get_reconfigure_schema,
@@ -93,7 +94,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                self._zones: list[str] = await validate_credentials(
+                self._zones: list[ZoneDescription] = await validate_credentials(
                     self.hass,
                     user_input[CONF_HOST],
                     user_input[CONF_USERNAME],
@@ -166,10 +167,10 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 options=getattr(self, "_options", {}),
             )
 
-        zone_names = self._zones
+        zone_descriptions = self._zones
         return self.async_show_form(
             step_id="zone_init",
-            data_schema=get_zones_schema(zone_names),
+            data_schema=get_zones_schema([zone.description for zone in zone_descriptions]),
         )
 
     async def async_step_reconfigure(

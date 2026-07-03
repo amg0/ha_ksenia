@@ -9,20 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-
-@dataclass
-class KseniaLaresZone:
-    """Represents a single alarm zone with its description and status."""
-
-    index: int
-    description: str
-    status: str = "UNKNOWN"
-    bypass: str = "UNKNOWN"
-
-    @property
-    def is_triggered(self) -> bool:
-        """Return True if the zone is in a non-NORMAL state (motion detected)."""
-        return self.status != "NORMAL"
+from custom_components.ksenia.api.client import KseniaLaresZone
 
 
 @dataclass

@@ -13,6 +13,7 @@ from custom_components.ksenia.api import KseniaLaresApiClient
 from custom_components.ksenia.api.client import (
     KseniaLaresApiClientAuthenticationError,
     KseniaLaresApiClientCommunicationError,
+    ZoneDescription,
 )
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
@@ -28,7 +29,9 @@ class InvalidAuth(KseniaLaresApiClientAuthenticationError):
     """Exception to indicate invalid credentials."""
 
 
-async def validate_credentials(hass: HomeAssistant, host: str, username: str, password: str, port: int) -> list[str]:
+async def validate_credentials(
+    hass: HomeAssistant, host: str, username: str, password: str, port: int
+) -> list[ZoneDescription]:
     """
     Validate user credentials by testing the connection to the Ksenia panel.
 

@@ -12,10 +12,106 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from enum import Enum
 import socket
+from typing import TypedDict
 from xml.etree import ElementTree as ET
 
 import aiohttp
+
+
+class AlarmInfo(TypedDict):
+    """Basic KSenia Lares alarm information."""
+
+    mac: str | None
+    host: str
+    name: str
+    info: str
+    version: str
+    revision: str
+    build: str
+
+
+class ZoneStatus(Enum):
+    """Status of alarm zone."""
+
+    ALARM = "ALARM"
+    NORMAL = "NORMAL"
+    NOT_USED = "NOT_USED"
+
+
+class ZoneBypass(Enum):
+    """Bypass of alarm zone."""
+
+    OFF = "UN_BYPASS"
+    ON = "BYPASS"
+
+
+@dataclass
+class ZoneDescription:
+    """Alarm zone."""
+
+    description: str
+
+    @property
+    def enabled(self):
+        """Return whether the zone is enabled."""
+        return self.description is not None and self.description != ""
+
+
+@dataclass
+class KseniaLaresZone:
+    """Represents a single alarm zone with its description and status."""
+
+    index: int
+    description: str
+    status: ZoneStatus
+    bypass: ZoneBypass
+
+    @property
+    def is_triggered(self) -> bool:
+        """Return True if the zone is in a non-NORMAL state (motion detected)."""
+        return self.status != ZoneStatus.NORMAL
+
+    @property
+    def enabled(self):
+        """Return whether the zone is enabled."""
+        return self.description is not None
+
+
+class PartitionStatus(Enum):
+    """Status of alarm partition."""
+
+    DISARMED = "DISARMED"
+    ARMED = "ARMED"
+    ARMED_IMMEDIATE = "ARMED_IMMEDIATE"
+    ARMING = "EXIT"
+    PENDING = "PREALARM"
+    ALARM = "ALARM"
+
+
+@dataclass
+class Partition:
+    """Alarm partition."""
+
+    id: int
+    description: str
+    status: PartitionStatus
+
+    @property
+    def enabled(self):
+        """Return whether the partition is enabled."""
+        return self.description is not None
+
+
+@dataclass
+class Scenario:
+    """Alarm scenario."""
+
+    id: int
+    description: str
+    enabled: bool
+    no_pin: bool
 
 
 class KseniaLaresApiClientError(Exception):
@@ -117,7 +213,7 @@ class KseniaLaresApiClient:
         """Return the BasicAuth object for requests."""
         return aiohttp.BasicAuth(self._username, self._password)
 
-    async def async_get_zone_descriptions(self) -> list[str]:
+    async def async_get_zone_descriptions(self) -> list[ZoneDescription]:
         """
         Fetch zone descriptions from the Ksenia controller.
 
@@ -137,7 +233,7 @@ class KseniaLaresApiClient:
             url=f"{self._base_url}/xml/zones/zonesDescription16IP.xml",
         )
         root = ET.fromstring(xml_text)  # noqa: S314
-        return [zone.text or "" for zone in root.findall("zone")]
+        return [ZoneDescription(description=zone.text or "") for zone in root.findall("zone")]
 
     async def async_get_zone_statuses(self) -> list[dict[str, str]]:
         """
@@ -280,7 +376,7 @@ class KseniaLaresApiClient:
 
         return await self._api_wrapper(url=url)
 
-    async def async_test_connection(self) -> list[str]:
+    async def async_test_connection(self) -> list[ZoneDescription]:
         """
         Test the connection by fetching zone descriptions.
 
