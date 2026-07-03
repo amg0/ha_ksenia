@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/amg0/ha_ksenia/compare/v0.2.4...v0.2.5) (2026-07-03)
+
+
+### Features
+
+* display zone an add a config option to set the number of columns for zones ([4b9c30c](https://github.com/amg0/ha_ksenia/commit/4b9c30c00460e6874cab73af6beddaffef63fb53))
+
 ## [0.2.4](https://github.com/amg0/ha_ksenia/compare/v0.2.3...v0.2.4) (2026-07-03)
 
 
