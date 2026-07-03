@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.3](https://github.com/amg0/ha_ksenia/compare/v0.2.2...v0.2.3) (2026-07-03)
+
+
+### Features
+
+* ksenia lovelace card ( not working yet ) ([68e5194](https://github.com/amg0/ha_ksenia/commit/68e51941a1966d42aeec21d69a2cfb5fb1d76916))
+
+
+### Bug Fixes
+
+* minor test in progress ([82b1c57](https://github.com/amg0/ha_ksenia/commit/82b1c57ecd52bf08a6bb0fc0d2dc0f20b231fb72))
+
 ## [0.2.2](https://github.com/amg0/ha_ksenia/compare/v0.2.1...v0.2.2) (2026-07-01)
 
 
