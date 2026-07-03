@@ -10,20 +10,10 @@ const { html, css } = LitElement.prototype;
 
 const editorTranslations = {
   en: {
-    title: "Card Title (Optional)",
-    device_filter: "Device Filter (comma-separated, e.g., KSenia_1, KSenia_2)",
-    device_exclude: "Device Exclude (comma-separated, e.g., light, temperature)",
-    relay_columns: "Relay Columns",
-    input_columns: "Input Columns",
-    analog_columns: "Analog Columns"
+    title: "Card Title (Optional)"
   },
   fr: {
-    title: "Titre de la carte (Optionnel)",
-    device_filter: "Filtre d'appareil (séparé par des virgules, Ex: KSenia_1, KSenia_2)",
-    device_exclude: "Exclusion d'appareil (séparé par des virgules, Ex: light, temperature)",
-    relay_columns: "Colonnes Relais",
-    input_columns: "Colonnes Entrées",
-    analog_columns: "Colonnes Analogiques"
+    title: "Titre de la carte (Optionnel)"
   }
 };
 
@@ -252,10 +242,7 @@ class KSeniaV3Card extends LitElement {
 
   static getStubConfig() {
     return {
-      title: "KSenia V3 Panel",
-      relay_columns: 4,
-      input_columns: 4,
-      analog_columns: 2
+      title: "KSenia V3 Panel"
     };
   }
 
@@ -268,7 +255,7 @@ class KSeniaV3Card extends LitElement {
 
       for (const entityId in this.hass.states) {
         const stateObj = this.hass.states[entityId];
-        if (stateObj.attributes && stateObj.attributes.ipx_key !== undefined) {
+        if (stateObj.attributes && stateObj.attributes.device_class === 'connectivity') {
           if (oldHass.states[entityId] !== stateObj) {
             return true;
           }
@@ -282,69 +269,17 @@ class KSeniaV3Card extends LitElement {
   render() {
     if (!this.hass || !this.config) return html``;
 
-    const allIpxEntities = Object.keys(this.hass.states)
+    const connectionEntity = Object.keys(this.hass.states)
       .map(id => this.hass.states[id])
-      .filter(stateObj => stateObj.attributes && stateObj.attributes.ipx_key !== undefined);
+      .find(stateObj => stateObj.attributes && stateObj.attributes.device_class === 'connectivity');
 
-    let filters = [];
-    if (this.config.device_filter) {
-      if (Array.isArray(this.config.device_filter)) {
-        filters = this.config.device_filter.map(f => String(f).trim().toLowerCase()).filter(f => f !== "");
-      } else if (typeof this.config.device_filter === "string") {
-        filters = this.config.device_filter.split(",").map(f => f.trim().toLowerCase()).filter(f => f !== "");
-      } else {
-        filters = [String(this.config.device_filter).trim().toLowerCase()];
-      }
-    }
-
-    let excludes = [];
-    if (this.config.device_exclude) {
-      if (Array.isArray(this.config.device_exclude)) {
-        excludes = this.config.device_exclude.map(f => String(f).trim().toLowerCase()).filter(f => f !== "");
-      } else if (typeof this.config.device_exclude === "string") {
-        excludes = this.config.device_exclude.split(",").map(f => f.trim().toLowerCase()).filter(f => f !== "");
-      } else {
-        excludes = [String(this.config.device_exclude).trim().toLowerCase()];
-      }
-    }
-
-    const entities = allIpxEntities.filter(stateObj => {
-      const entityIdLower = stateObj.entity_id.toLowerCase();
-      const friendlyNameLower = stateObj.attributes.friendly_name ? stateObj.attributes.friendly_name.toLowerCase() : "";
-
-      if (excludes.length > 0) {
-        const matchesExclude = excludes.some(exclude => entityIdLower.includes(exclude) || friendlyNameLower.includes(exclude));
-        if (matchesExclude) return false;
-      }
-
-      if (filters.length === 0) return true;
-      return filters.some(filter => entityIdLower.includes(filter) || friendlyNameLower.includes(filter));
-    });
-
-    const relays = entities.filter(e => e.entity_id.startsWith('switch.'));
-    relays.sort((a, b) => this._sortIpxKeys(a.attributes.ipx_key, b.attributes.ipx_key));
-
-    const inputs = entities.filter(e => e.entity_id.startsWith('binary_sensor.') && e.attributes.ipx_key.startsWith('btn'));
-    inputs.sort((a, b) => this._sortIpxKeys(a.attributes.ipx_key, b.attributes.ipx_key));
-
-    const analogs = entities.filter(e => e.entity_id.startsWith('sensor.') && e.attributes.ipx_key.startsWith('analog'));
-    analogs.sort((a, b) => this._sortIpxKeys(a.attributes.ipx_key, b.attributes.ipx_key));
-
-    const counters = entities.filter(e => e.entity_id.startsWith('sensor.') && e.attributes.ipx_key.startsWith('count'));
-    counters.sort((a, b) => this._sortIpxKeys(a.attributes.ipx_key, b.attributes.ipx_key));
-
-    const connectionEntity = entities.find(e => e.attributes.ipx_key === 'api_connectivity');
-    const isOnline = connectionEntity ? connectionEntity.state === 'on' : true;
-    const statusText = connectionEntity ? (isOnline ? "Online" : "Offline") : "Connected";
-
-    const relayColumns = this.config.relay_columns || 4;
-    const inputColumns = this.config.input_columns || 4;
-    const analogColumns = this.config.analog_columns || 2;
+    const isOnline = connectionEntity ? connectionEntity.state === 'on' : false;
+    const statusText = connectionEntity ? (isOnline ? "Online" : "Offline") : "No sensor";
 
     const cardTitle = this.config.title || (connectionEntity?.attributes.friendly_name ? connectionEntity.attributes.friendly_name.replace(" API connectivity", "") : "KSenia V3 Panel");
 
     return html`
-      <ha-card style="--relay-columns: ${relayColumns}; --input-columns: ${inputColumns}; --analog-columns: ${analogColumns};">
+      <ha-card>
         <div class="card-header">
           <div class="title">
             <ha-icon icon="mdi:ip-network"></ha-icon>
@@ -356,156 +291,29 @@ class KSeniaV3Card extends LitElement {
           </div>
         </div>
 
-        ${relays.length > 0 ? html`
-          <div class="section-title">Relays (Outputs)</div>
-          <div class="grid relay-grid">
-            ${relays.map(stateObj => {
-              const isOn = stateObj.state === 'on';
-              const name = this._cleanEntityName(stateObj, 'relay');
-              return html`
-                <div
-                  class="relay-btn ${isOn ? 'active' : ''}"
-                  title="${stateObj.entity_id}"
-                  @click="${() => this._toggleSwitch(stateObj.entity_id)}"
-                >
-                  ${name}
-                </div>
-              `;
-            })}
+        ${connectionEntity ? html`
+          <div style="text-align: center; padding: 16px 0;">
+            <ha-icon
+              icon="${isOnline ? 'mdi:check-circle' : 'mdi:close-circle'}"
+              style="font-size: 3em; color: ${isOnline ? '#2ecc71' : '#e74c3c'};"
+            ></ha-icon>
+            <div style="margin-top: 12px; font-size: 0.9em; color: var(--secondary-text-color);">
+              ${connectionEntity.attributes.friendly_name || 'API Connectivity'}
+            </div>
           </div>
-        ` : ''}
-
-        ${inputs.length > 0 ? html`
-          <div class="section-title">Digital Inputs</div>
-          <div class="grid input-grid">
-            ${inputs.map(stateObj => {
-              const isOn = stateObj.state === 'on';
-              const name = this._cleanEntityName(stateObj, 'input');
-              return html`
-                <div class="input-indicator" title="${stateObj.entity_id}">
-                  <span class="led ${isOn ? 'active' : ''}"></span>
-                  <span>${name}</span>
-                </div>
-              `;
-            })}
-          </div>
-        ` : ''}
-
-        ${analogs.length > 0 ? html`
-          <div class="section-title">Analog Inputs</div>
-          <div class="grid analog-grid">
-            ${analogs.map(stateObj => {
-              let val = stateObj.state;
-
-              const numVal = parseFloat(val);
-              if (!isNaN(numVal)) {
-                val = numVal.toFixed(1);
-              }
-
-              const unit = stateObj.attributes.unit_of_measurement || '';
-              const name = this._cleanEntityName(stateObj, 'analog');
-              const deviceClass = stateObj.attributes.device_class;
-              const icon = this._getAnalogIcon(deviceClass);
-              return html`
-                <div class="analog-card" title="${stateObj.entity_id}">
-                  <div class="analog-icon">
-                    <ha-icon icon="${icon}"></ha-icon>
-                  </div>
-                  <div class="analog-info">
-                    <span class="analog-label">${name}</span>
-                    <span class="analog-value">${val} ${unit}</span>
-                  </div>
-                </div>
-              `;
-            })}
-          </div>
-        ` : ''}
-
-        ${counters.length > 0 ? html`
-          <div class="section-title">Counters</div>
-          <div class="counter-container">
-            ${counters.map(stateObj => {
-              const val = stateObj.state;
-              const name = this._cleanEntityName(stateObj, 'counter');
-              return html`
-                <div class="counter-row" title="${stateObj.entity_id}">
-                  <span class="counter-name">
-                    ${name}: <span class="counter-value">${val}</span>
-                  </span>
-                  <div class="counter-actions">
-                    <button class="counter-btn" @click="${() => this._adjustCounter(stateObj.entity_id, -10)}">-10</button>
-                    <button class="counter-btn" @click="${() => this._adjustCounter(stateObj.entity_id, -1)}">-1</button>
-                    <button class="counter-btn" @click="${() => this._adjustCounter(stateObj.entity_id, 1)}">+1</button>
-                    <button class="counter-btn" @click="${() => this._adjustCounter(stateObj.entity_id, 10)}">+10</button>
-                  </div>
-                </div>
-              `;
-            })}
-          </div>
-        ` : ''}
-
-        ${relays.length === 0 && inputs.length === 0 && analogs.length === 0 && counters.length === 0 ? html`
+        ` : html`
           <div style="padding: 20px 0; text-align: center; color: var(--secondary-text-color); font-style: italic;">
-            Aucune entité KSenia trouvée.
+            No API connectivity sensor found.
           </div>
-        ` : ''}
+        `}
       </ha-card>
     `;
-  }
-
-  _sortIpxKeys(keyA, keyB) {
-    const numA = parseInt(keyA.replace(/^\D+/g, ''), 10);
-    const numB = parseInt(keyB.replace(/^\D+/g, ''), 10);
-    return numA - numB;
-  }
-
-  _cleanEntityName(stateObj, type) {
-    let name = stateObj.attributes.friendly_name || '';
-    if (!name) {
-      const parts = stateObj.entity_id.split('.');
-      return parts[parts.length - 1];
-    }
-    name = name.replace(/^My KSenia V3\s+/i, '');
-    name = name.replace(/^KSenia\s+/i, '');
-    return name;
-  }
-
-  _getAnalogIcon(deviceClass) {
-    switch (deviceClass) {
-      case 'temperature':
-        return 'mdi:thermometer';
-      case 'illuminance':
-        return 'mdi:weather-sunny';
-      case 'humidity':
-        return 'mdi:water-percent';
-      case 'current':
-        return 'mdi:flash';
-      case 'voltage':
-        return 'mdi:sine-wave';
-      case 'ph':
-        return 'mdi:ph';
-      default:
-        return 'mdi:gauge';
-    }
   }
 
   _fireHaptic(type = "light") {
     const event = new Event("haptic", { bubbles: true, composed: true });
     event.detail = type;
     this.dispatchEvent(event);
-  }
-
-  _toggleSwitch(entityId) {
-    this._fireHaptic("light");
-    this.hass.callService('switch', 'toggle', { entity_id: entityId });
-  }
-
-  _adjustCounter(entityId, offset) {
-    this._fireHaptic("medium");
-    this.hass.callService('my_KSeniav3', 'adjust_counter_value', {
-      entity_id: entityId,
-      offset: offset
-    });
   }
 
   setConfig(config) {
@@ -517,7 +325,7 @@ class KSeniaV3Card extends LitElement {
   }
 
   static getConfigElement() {
-    return document.createElement("KSeniav3-card-editor");
+    return document.createElement("ksenia-card-editor");
   }
 }
 
@@ -545,23 +353,6 @@ class KSeniaV3CardEditor extends LitElement {
       {
         name: "title",
         selector: { text: {} }
-      },
-      {
-        name: "device_filter",
-        selector: { text: {} }
-      },
-      {
-        name: "device_exclude",
-        selector: { text: {} }
-      },
-      {
-        name: "",
-        type: "grid",
-        schema: [
-          { name: "relay_columns", selector: { number: { min: 1, max: 8, mode: "box" } } },
-          { name: "input_columns", selector: { number: { min: 1, max: 8, mode: "box" } } },
-          { name: "analog_columns", selector: { number: { min: 1, max: 8, mode: "box" } } }
-        ]
       }
     ];
 
@@ -597,12 +388,12 @@ class KSeniaV3CardEditor extends LitElement {
   }
 }
 
-customElements.define('KSeniav3-card', KSeniaV3Card);
-customElements.define("KSeniav3-card-editor", KSeniaV3CardEditor);
+customElements.define('ksenia-card', KSeniaV3Card);
+customElements.define("ksenia-card-editor", KSeniaV3CardEditor);
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'KSeniav3-card',
+  type: 'ksenia-card',
   name: 'KSenia V3 Card',
   description: 'A dense synthetic card displaying Relays, Digital Inputs, Analogs, and Counters for KSenia V3 custom integration.',
   preview: true,
@@ -611,12 +402,12 @@ window.customCards.push({
   getEntitySuggestion: (hass, entityId) => {
     const entityReg = hass.entities[entityId];
 
-    if (!entityReg || entityReg.platform !== "my_KSeniav3") {
+    if (!entityReg || entityReg.platform !== "ksenia") {
       return null;
     }
 
     return {
-      config: { type: "custom:KSeniav3-card" },
+      config: { type: "custom:ksenia-card" },
     };
   },
 });
