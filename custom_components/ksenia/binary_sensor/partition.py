@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.ksenia.api.client import KseniaPartitionStatus
+from custom_components.ksenia.api.client import PartitionStatus
 from custom_components.ksenia.const import ATTRIBUTION
 from custom_components.ksenia.coordinator import KseniaLaresDataUpdateCoordinator
 from custom_components.ksenia.entity import KseniaLaresEntity
@@ -41,7 +41,7 @@ class KseniaLaresPartitionBinarySensor(BinarySensorEntity, KseniaLaresEntity):
         partition = self._coordinator.partitions.get(self._partition_name)
         if partition is None:
             return False
-        return partition.status == KseniaPartitionStatus.DISARMED
+        return partition.status == PartitionStatus.DISARMED
 
     @property
     def extra_state_attributes(self) -> dict[str, str]:

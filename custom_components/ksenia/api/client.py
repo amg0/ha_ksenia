@@ -90,7 +90,7 @@ class KseniaLaresZone:
         return self.description is not None
 
 
-class KseniaPartitionStatus(Enum):
+class PartitionStatus(Enum):
     """Status of alarm partition."""
 
     UNKNOWN = "UNKNOWN"
@@ -108,7 +108,7 @@ class KseniaPartition:
 
     id: int
     description: str
-    status: KseniaPartitionStatus
+    status: PartitionStatus
 
     @property
     def enabled(self):
@@ -117,7 +117,7 @@ class KseniaPartition:
 
 
 @dataclass
-class Scenario:
+class KseniaScenario:
     """Alarm scenario."""
 
     id: int
@@ -315,7 +315,7 @@ class KseniaLaresApiClient:
             if i < len(descriptions):
                 name = descriptions[i]
                 statuses[name] = KseniaPartition(
-                    id=i, description=name, status=KseniaPartitionStatus(partition_el.text or "UNKNOWN")
+                    id=i, description=name, status=PartitionStatus(partition_el.text or "UNKNOWN")
                 )
 
         return statuses
