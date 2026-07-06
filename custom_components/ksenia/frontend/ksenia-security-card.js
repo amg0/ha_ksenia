@@ -10,10 +10,14 @@ const { html, css } = LitElement.prototype;
 
 const editorTranslations = {
   en: {
-    title: "Card Title (Optional)"
+    title: "Card Title (Optional)",
+    zone_columns: "Number of columns for zones (default 4)",
+    partition_columns: "Number of columns for partitions (default 4)"
   },
   fr: {
-    title: "Titre de la carte (Optionnel)"
+    title: "Titre de la carte (Optionnel)",
+    zone_columns: "Nombre de colonnes pour les zones (default 4)",
+    partition_columns: "Nombre de colonnes pour les partitions (default 4)"
   }
 };
 
@@ -237,6 +241,32 @@ class KSeniaV3Card extends LitElement {
       .counter-btn:active {
         background: rgba(255, 255, 255, 0.25);
       }
+      /* Partition Styles */
+      .partition-grid {
+        grid-template-columns: repeat(var(--partition-columns, 4), 1fr);
+      }
+      .partition-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        padding: 8px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .partition-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
       /* Zone Styles */
       .zone-grid {
         grid-template-columns: repeat(var(--zone-columns, 4), 1fr);
@@ -260,7 +290,8 @@ class KSeniaV3Card extends LitElement {
 static getStubConfig() {
   return {
     title: "KSenia V3 Panel",
-    zone_columns: 4
+    zone_columns: 4,
+    partition_columns: 4
   };
 }
 
@@ -276,8 +307,9 @@ static getStubConfig() {
         const deviceClass = stateObj.attributes && stateObj.attributes.device_class;
         const isConnectivity = deviceClass === 'connectivity';
         const isZoneBinary = entityId.startsWith('binary_sensor.') && (deviceClass === 'door' || deviceClass === 'motion');
+        const isPartition = entityId.startsWith('binary_sensor.') && deviceClass === 'lock';
 
-        if (isConnectivity || isZoneBinary) {
+        if (isConnectivity || isZoneBinary || isPartition) {
           if (oldHass.states[entityId] !== stateObj) {
             return true;
           }
@@ -323,6 +355,11 @@ static getStubConfig() {
       .map(id => this.hass.states[id])
       .filter(s => s.entity_id && s.entity_id.startsWith('binary_sensor.') && s.attributes && (s.attributes.device_class === 'door' || s.attributes.device_class === 'motion'));
 
+    // Collect partition sensors from hass states
+    const partitionSensors = Object.keys(this.hass.states)
+      .map(id => this.hass.states[id])
+      .filter(s => s.entity_id && s.entity_id.startsWith('binary_sensor.') && s.attributes && s.attributes.device_class === 'lock');
+
     // Enrich sensors with readable labels and sort: doors first, then motion, each group alphabetically by name
     const zoneItems = zoneSensors.map(sensor => {
       const isDoor = sensor.attributes.device_class === 'door';
@@ -340,6 +377,35 @@ static getStubConfig() {
       return nameA.localeCompare(nameB);
     });
 
+    // Partition status mapping
+    const partitionStatusMap = {
+      'disarmed': { label: 'Disarmed', icon: 'mdi:lock-open', color: '#2ecc71' },
+      'armed': { label: 'Armed', icon: 'mdi:home-lock', color: '#f39c12' },
+      'armed_immediate': { label: 'Armed Immediate', icon: 'mdi:lock', color: '#e74c3c' },
+      'exit': { label: 'Exit', icon: 'mdi:lock-clock', color: '#f1c40f' },
+      'prealarm': { label: 'Prealarm', icon: 'mdi:alert-circle', color: '#e74c3c' },
+      'alarm': { label: 'Alarm', icon: 'mdi:alert-circle', color: '#e74c3c' },
+      'unknown': { label: 'Unknown', icon: 'mdi:help-circle', color: 'var(--secondary-text-color)' },
+    };
+
+    // Enrich partition sensors with status labels and sort alphabetically
+    const partitionItems = partitionSensors.map(sensor => {
+      const statusRaw = sensor.attributes?.partition_status || 'unknown';
+      const statusKey = statusRaw.toLowerCase().replace(/\s+/g, '_');
+      console.log(`Partition sensor ${sensor.entity_id} has raw status: ${statusRaw} (key: ${statusKey})`);
+      const statusInfo = partitionStatusMap[statusKey] || partitionStatusMap['unknown'];
+      return {
+        sensor,
+        label: statusInfo.label,
+        icon: statusInfo.icon,
+        color: statusInfo.color,
+      };
+    }).sort((a, b) => {
+      const nameA = a.sensor.attributes.friendly_name || '';
+      const nameB = b.sensor.attributes.friendly_name || '';
+      return nameA.localeCompare(nameB);
+    });
+
     return html`
       <ha-card>
         <div class="card-header">
@@ -352,6 +418,26 @@ static getStubConfig() {
             <span>${statusText}</span>
           </div>
         </div>
+
+        ${partitionItems && partitionItems.length ? html`
+          <div class="section-title">Partitions</div>
+          <div class="grid partition-grid" style="--partition-columns: ${this.config.partition_columns || 4}">
+            ${partitionItems.map(item => html`
+              <div class="partition-item" title="${item.sensor.entity_id}">
+                <div class="partition-icon" style="background-color: ${item.color}20;">
+                  <ha-icon
+                    icon="${item.icon}"
+                    style="color: ${item.color}; font-size: 1em;"
+                  ></ha-icon>
+                </div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.sensor.attributes.friendly_name) || item.sensor.entity_id}</div>
+                  <div style="font-size:0.8em; color:var(--secondary-text-color);">${item.label}</div>
+                </div>
+              </div>
+            `)}
+          </div>
+        ` : html``}
 
         ${zoneItems && zoneItems.length ? html`
           <div class="section-title">Zones</div>
@@ -427,6 +513,10 @@ class KSeniaV3CardEditor extends LitElement {
       },
       {
         name: "zone_columns",
+        selector: { number: { min: 1, max: 8, step: 1 } }
+      },
+      {
+        name: "partition_columns",
         selector: { number: { min: 1, max: 8, step: 1 } }
       }
     ];

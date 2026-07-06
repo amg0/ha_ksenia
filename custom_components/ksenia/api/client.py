@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, StrEnum
 import socket
 from typing import TypedDict
 from xml.etree import ElementTree as ET
@@ -41,7 +41,7 @@ class ZoneStatus(Enum):
     NOT_USED = "NOT_USED"
 
 
-class ZoneBypass(Enum):
+class ZoneBypass(StrEnum):
     """Bypass of alarm zone."""
 
     UNKNOWN = "UNKNOWN"
@@ -90,7 +90,7 @@ class KseniaLaresZone:
         return self.description is not None
 
 
-class PartitionStatus(Enum):
+class PartitionStatus(StrEnum):
     """Status of alarm partition."""
 
     UNKNOWN = "UNKNOWN"
