@@ -361,7 +361,7 @@ static getStubConfig() {
                 <ha-icon
                   class="analog-icon"
                   icon="${item.isDoor ? 'mdi:door' : 'mdi:motion-sensor'}"
-                  style="color: ${item.sensor.state === 'on' ? (item.isDoor ? '#e74c3c' : '#f1c40f') : 'var(--secondary-text-color)'};"
+                  style="color: ${item.sensor.state === 'on' ? (item.isDoor ? '#e6311d' : '#ef9b0a') : 'var(--secondary-text-color)'};"
                 ></ha-icon>
                 <div style="flex:1; min-width:0;">
                   <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.sensor.attributes.friendly_name) || item.sensor.entity_id}</div>
