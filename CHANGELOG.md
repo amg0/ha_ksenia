@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.2.7](https://github.com/amg0/ha_ksenia/compare/v0.2.6...v0.2.7) (2026-07-06)
+
+
+### Features
+
+* partitions icons in lovelace card, parameter to control nomber of displayed columns ([7ee3491](https://github.com/amg0/ha_ksenia/commit/7ee34918f70df553cb0c125fc1645a6ec818fd78))
+
+
+### Bug Fixes
+
+* improve client colors ([29dc966](https://github.com/amg0/ha_ksenia/commit/29dc966017cc53c89050d1657a7a84a488e4740f))
+* namings ([87c60aa](https://github.com/amg0/ha_ksenia/commit/87c60aa164f3b910a818cbd03560b1f9809a8de6))
+* progress on strongly type for the api client ([0873ec4](https://github.com/amg0/ha_ksenia/commit/0873ec42061218a8eef1524f344d94092f6c5978))
+* strong typing for partition status and partition data and bug fixes for partition binary sensor ([b5e08d2](https://github.com/amg0/ha_ksenia/commit/b5e08d268b13f8c867bfcdd785b5f4d33e45f118))
+* stronger typing in Run Scenario code ([b233b39](https://github.com/amg0/ha_ksenia/commit/b233b39a112884f2182e13871d847a2c4dd1c741))
+* use of StrEnum instead of Enum ([7ee3491](https://github.com/amg0/ha_ksenia/commit/7ee34918f70df553cb0c125fc1645a6ec818fd78))
+
 ## [0.2.6](https://github.com/amg0/ha_ksenia/compare/v0.2.5...v0.2.6) (2026-07-03)
 
 
