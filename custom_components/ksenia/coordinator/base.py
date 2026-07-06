@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 from custom_components.ksenia.api import KseniaLaresApiClientAuthenticationError, KseniaLaresApiClientError
 from custom_components.ksenia.api.client import (
     KSeniaLaresScenario,
+    KseniaPartition,
     ZoneBypass,
     ZoneDescription,
     ZoneStatus,
@@ -78,7 +79,7 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         )
         # Zone descriptions, populated during _async_setup
         self._zone_descriptions: list[ZoneDescription] = []
-        self._partitions_data: dict[str, str] = {}
+        self._partitions_data: dict[str, KseniaPartition] = {}
         self._scenarios: list[KSeniaLaresScenario] = []
 
     async def _async_setup(self) -> None:
@@ -125,7 +126,7 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         return self._zone_descriptions
 
     @property
-    def partitions(self) -> dict[str, str]:
+    def partitions(self) -> dict[str, KseniaPartition]:
         """Return the partition statuses property."""
         return self._partitions_data
 

@@ -90,9 +90,10 @@ class KseniaLaresZone:
         return self.description is not None
 
 
-class PartitionStatus(Enum):
+class KseniaPartitionStatus(Enum):
     """Status of alarm partition."""
 
+    UNKNOWN = "UNKNOWN"
     DISARMED = "DISARMED"
     ARMED = "ARMED"
     ARMED_IMMEDIATE = "ARMED_IMMEDIATE"
@@ -102,12 +103,12 @@ class PartitionStatus(Enum):
 
 
 @dataclass
-class Partition:
+class KseniaPartition:
     """Alarm partition."""
 
     id: int
     description: str
-    status: PartitionStatus
+    status: KseniaPartitionStatus
 
     @property
     def enabled(self):
@@ -278,7 +279,7 @@ class KseniaLaresApiClient:
             )
         return statuses
 
-    async def async_get_partition_statuses(self) -> dict[str, str]:
+    async def async_get_partition_statuses(self) -> dict[str, KseniaPartition]:
         """
         Fetch current partition statuses from the Ksenia controller.
 
@@ -309,11 +310,13 @@ class KseniaLaresApiClient:
         stat_root = ET.fromstring(stat_xml)  # noqa: S314
 
         # 3. Combine results into a dictionary <name>:<status>
-        statuses: dict[str, str] = {}
+        statuses: dict[str, KseniaPartition] = {}
         for i, partition_el in enumerate(stat_root.findall("partition")):
             if i < len(descriptions):
                 name = descriptions[i]
-                statuses[name] = partition_el.text or "UNKNOWN"
+                statuses[name] = KseniaPartition(
+                    id=i, description=name, status=KseniaPartitionStatus(partition_el.text or "UNKNOWN")
+                )
 
         return statuses
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from custom_components.ksenia.api.client import KseniaPartitionStatus
 from custom_components.ksenia.const import ATTRIBUTION
 from custom_components.ksenia.coordinator import KseniaLaresDataUpdateCoordinator
 from custom_components.ksenia.entity import KseniaLaresEntity
@@ -37,13 +38,14 @@ class KseniaLaresPartitionBinarySensor(BinarySensorEntity, KseniaLaresEntity):
     @property
     def is_on(self) -> bool:
         """Return True if partition is unlocked (status is DISARMED)."""
-        status = self._coordinator.partitions.get(self._partition_name)
-        return status == "DISARMED"
+        partition = self._coordinator.partitions.get(self._partition_name)
+        if partition is None:
+            return False
+        return partition.status == KseniaPartitionStatus.DISARMED
 
     @property
     def extra_state_attributes(self) -> dict[str, str]:
         """Return additional partition state attributes."""
-        status = self._coordinator.partitions.get(self._partition_name, "UNKNOWN")
-        return {
-            "partition_status": status,
-        }
+        partition = self._coordinator.partitions.get(self._partition_name, None)
+
+        return {"partition_status": str(partition.status if partition else "UNKNOWN")}
