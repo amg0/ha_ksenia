@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/amg0/ha_ksenia/compare/v0.2.5...v0.2.6) (2026-07-03)
+
+
+### Bug Fixes
+
+* stronger typing for the client API ([aacff9f](https://github.com/amg0/ha_ksenia/commit/aacff9f3768bca2e1700798b2b1a2ca3a386c948))
+
 ## [0.2.5](https://github.com/amg0/ha_ksenia/compare/v0.2.4...v0.2.5) (2026-07-03)
 
 
