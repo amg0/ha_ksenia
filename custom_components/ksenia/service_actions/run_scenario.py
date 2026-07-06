@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from custom_components.ksenia.api.client import KseniaLaresApiClient
 from custom_components.ksenia.const import CONF_PIN, DOMAIN, LOGGER
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
@@ -22,6 +23,8 @@ async def async_handle_run_scenario(
     Args:
         hass: Home Assistant instance
         call: Service call data
+            "scenario_name"
+            "entity_id"
 
     Raises:
         HomeAssistantError: If entity resolution or scenario execution fails.
@@ -56,7 +59,7 @@ async def async_handle_run_scenario(
     if not entry:
         raise HomeAssistantError(f"Config entry {config_entry_id} not found")
 
-    client = entry.runtime_data.client
+    client: KseniaLaresApiClient = entry.runtime_data.client
 
     # Fetch scenarios to find the matching name
     try:
@@ -66,22 +69,15 @@ async def async_handle_run_scenario(
 
     target_scenario = None
     for scenario in scenarios:
-        if scenario["name"] == scenario_name:
+        if scenario.name == scenario_name:
             target_scenario = scenario
             break
 
     if not target_scenario:
-        # Fallback to case-insensitive match
-        for scenario in scenarios:
-            if str(scenario["name"]).lower() == str(scenario_name).lower():
-                target_scenario = scenario
-                break
-
-    if not target_scenario:
         raise HomeAssistantError(f"Scenario '{scenario_name}' not found on Ksenia controller")
 
-    scenario_id = target_scenario["id"]
-    nopin = target_scenario.get("nopin", True)
+    scenario_id = target_scenario.id
+    nopin = target_scenario.nopin if not None else True
     pin = entry.options.get(CONF_PIN)
 
     if not nopin and not pin:
