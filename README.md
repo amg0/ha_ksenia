@@ -287,10 +287,11 @@ zone_columns: 4
 
 ### Card Configuration Parameters
 
-| Parameter      | Type   | Default           | Description                                                               |
-| -------------- | ------ | ----------------- | ------------------------------------------------------------------------- |
-| `title`        | string | `KSenia V3 Panel` | Optional title text displayed in the card header.                         |
-| `zone_columns` | number | `4`               | Number of columns used to display the zone sensors. Valid values are 1–8. |
+| Parameter           | Type   | Default           | Description                                                               |
+| ------------------- | ------ | ----------------- | ------------------------------------------------------------------------- |
+| `title`             | string | `KSenia V3 Panel` | Optional title text displayed in the card header.                         |
+| `zone_columns`      | number | `4`               | Number of columns used to display the zone sensors. Valid values are 1–8. |
+| `partition_columns` | number | `4`               | Number of columns used to display the partitions. Valid values are 1–8.   |
 
 ### Example Configuration
 
@@ -300,6 +301,7 @@ A simple card configuration with a custom title and 3 columns for zone sensors:
 type: custom:ksenia-card
 title: My Alarm Zones
 zone_columns: 3
+partition_columns: 2
 ```
 
 If you do not specify `zone_columns`, the card defaults to `4`.
