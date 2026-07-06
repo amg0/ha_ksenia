@@ -15,7 +15,13 @@ from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api import KseniaLaresApiClientAuthenticationError, KseniaLaresApiClientError
-from custom_components.ksenia.api.client import KSeniaLaresScenario, ZoneBypass, ZoneDescription, ZoneStatus
+from custom_components.ksenia.api.client import (
+    KSeniaLaresScenario,
+    ZoneBypass,
+    ZoneDescription,
+    ZoneStatus,
+    ZoneStatusDescription,
+)
 from custom_components.ksenia.const import LOGGER
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -169,8 +175,9 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
                     KseniaLaresZone(
                         index=idx,
                         description=zonedescription.description,
-                        status=ZoneStatus(zone_status.get("status", "UNKNOWN")),
-                        bypass=ZoneBypass(zone_status.get("bypass", "UNKNOWN")),
+                        statusdescription=ZoneStatusDescription(
+                            status=ZoneStatus(zone_status.status), bypass=ZoneBypass(zone_status.bypass)
+                        ),
                     )
                 )
             # else:

@@ -109,8 +109,8 @@ async def async_get_config_entry_diagnostics(
             {
                 "index": zone.index,
                 "description": zone.description,
-                "status": zone.status,
-                "bypass": zone.bypass,
+                "status": zone.statusdescription.status,
+                "bypass": zone.statusdescription.bypass,
             }
             for zone in coordinator.data.zones
         ]

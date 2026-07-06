@@ -35,6 +35,7 @@ class AlarmInfo(TypedDict):
 class ZoneStatus(Enum):
     """Status of alarm zone."""
 
+    UNKNOWN = "UNKNOWN"
     ALARM = "ALARM"
     NORMAL = "NORMAL"
     NOT_USED = "NOT_USED"
@@ -43,6 +44,7 @@ class ZoneStatus(Enum):
 class ZoneBypass(Enum):
     """Bypass of alarm zone."""
 
+    UNKNOWN = "UNKNOWN"
     OFF = "UN_BYPASS"
     ON = "BYPASS"
 
@@ -60,18 +62,27 @@ class ZoneDescription:
 
 
 @dataclass
+class ZoneStatusDescription:
+    """Alarm zone."""
+
+    status: ZoneStatus
+    bypass: ZoneBypass
+
+
+@dataclass
 class KseniaLaresZone:
     """Represents a single alarm zone with its description and status."""
 
     index: int
     description: str
-    status: ZoneStatus
-    bypass: ZoneBypass
+    statusdescription: ZoneStatusDescription
+    # status: ZoneStatus
+    # bypass: ZoneBypass
 
     @property
     def is_triggered(self) -> bool:
         """Return True if the zone is in a non-NORMAL state (motion detected)."""
-        return self.status != ZoneStatus.NORMAL
+        return self.statusdescription.status != ZoneStatus.NORMAL
 
     @property
     def enabled(self):
@@ -235,7 +246,7 @@ class KseniaLaresApiClient:
         root = ET.fromstring(xml_text)  # noqa: S314
         return [ZoneDescription(description=zone.text or "") for zone in root.findall("zone")]
 
-    async def async_get_zone_statuses(self) -> list[dict[str, str]]:
+    async def async_get_zone_statuses(self) -> list[ZoneStatusDescription]:
         """
         Fetch current zone statuses from the Ksenia controller.
 
@@ -255,15 +266,15 @@ class KseniaLaresApiClient:
             url=f"{self._base_url}/xml/zones/zonesStatus16IP.xml",
         )
         root = ET.fromstring(xml_text)  # noqa: S314
-        statuses: list[dict[str, str]] = []
+        statuses: list[ZoneStatusDescription] = []
         for zone in root.findall("zone"):
             status_el = zone.find("status")
             bypass_el = zone.find("bypass")
             statuses.append(
-                {
-                    "status": status_el.text or "UNKNOWN" if status_el is not None else "UNKNOWN",
-                    "bypass": bypass_el.text or "UNKNOWN" if bypass_el is not None else "UNKNOWN",
-                }
+                ZoneStatusDescription(
+                    status=ZoneStatus(status_el.text or "UNKNOWN") if status_el is not None else ZoneStatus.UNKNOWN,
+                    bypass=ZoneBypass(bypass_el.text or "UNKNOWN") if bypass_el is not None else ZoneBypass.UNKNOWN,
+                )
             )
         return statuses
 
