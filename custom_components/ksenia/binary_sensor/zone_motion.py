@@ -88,6 +88,7 @@ class KseniaLaresZoneMotionSensor(BinarySensorEntity, KseniaLaresEntity):
         if zone is None:
             return {}
         return {
+            "index": str(zone.index),
             "zone_status": str(zone.statusdescription.status),
             "bypass": str(zone.statusdescription.bypass),
             "integration": DOMAIN,

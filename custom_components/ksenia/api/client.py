@@ -146,8 +146,8 @@ class KseniaLaresApiClientAuthenticationError(
 class KSeniaLaresScenario:
     """Représentation d'un scénario Ksenia Lares."""
 
-    name: str
     id: int
+    name: str
     nopin: bool
 
 
@@ -278,6 +278,26 @@ class KseniaLaresApiClient:
                 )
             )
         return statuses
+
+    async def async_set_zone_bypass(self, zone_id: int, pin: str | None, bypass: bool) -> str:
+        """
+        Set the bypass state of a specific zone.
+
+        Args:
+            zone_id: The ID of the zone to modify.
+            pin: The PIN for authentication.
+            bypass: True to enable bypass, False to disable.
+
+        Returns:
+            The raw XML response text.
+        """
+        bypass_value = 1 if bypass else 0
+        url = f"{self._base_url}/xml/cmd/cmdOk.xml?cmd=setByPassZone&zoneId={zone_id}&zoneValue={bypass_value}&redirectPage=/xml/cmd/cmdError.xml"
+        # http://192.168.0.41:125/xml/cmd/cmdOk.xml?cmd=setByPassZone&pin=150618&zoneId=12&zoneValue=0&redirectPage=/xml/cmd/cmdError.xml&_=1783460468295
+        if pin:
+            url += f"&pin={pin}"
+
+        return await self._api_wrapper(url=url)
 
     async def async_get_partition_statuses(self) -> dict[str, KseniaPartition]:
         """

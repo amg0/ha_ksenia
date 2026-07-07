@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from custom_components.ksenia.const import PARALLEL_UPDATES as PARALLEL_UPDATES
 from homeassistant.components.button import ButtonDeviceClass, ButtonEntityDescription
 
-from .partition_button import KseniaLaresButton
+from .scenario_button import KseniaLaresButton
 
 if TYPE_CHECKING:
     from custom_components.ksenia.data import KseniaLaresConfigEntry

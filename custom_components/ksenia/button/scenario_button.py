@@ -48,6 +48,7 @@ class KseniaLaresButton(ButtonEntity, KseniaLaresEntity):
         this would send an API command to reset the device's filter counter.
 
         Demo: This also affects the filter_life sensor - watch it jump to 100%!
+        the scenarioid is = int(self.entity_description.key)
         """
         scenarioid = int(self.entity_description.key)
         scenario_list = self.coordinator.scenarios
