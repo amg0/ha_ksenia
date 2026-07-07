@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.9](https://github.com/amg0/ha_ksenia/compare/v0.2.8...v0.2.9) (2026-07-07)
+
+
+### Features
+
+* add a special attribute "integration" to entities created by "ksenia" integration ([8cf9472](https://github.com/amg0/ha_ksenia/commit/8cf9472e45a2301ad2614898d88c539fa30b89db))
+* add filter on lovelace card to only consider ksenia ([ccfa03d](https://github.com/amg0/ha_ksenia/commit/ccfa03d3643e52df81e89db02ec4a966abce7915))
+
+
+### Bug Fixes
+
+* attributes value should be pure string ([e1e585d](https://github.com/amg0/ha_ksenia/commit/e1e585d13520df60ea72bec418b1303627cdee73))
+
 ## [0.2.8](https://github.com/amg0/ha_ksenia/compare/v0.2.7...v0.2.8) (2026-07-07)
 
 
