@@ -20,3 +20,16 @@ run_scenario:
       example: "Arm Away"
       selector:
         text:
+
+zone_bypass:
+  name: "Toggle Zone Bypass"
+  description: "Toggles the bypass (exclusion) state of a Ksenia alarm zone. If the zone is active, it will be bypassed, and vice versa."
+  fields:
+    entity_id:
+      name: Zone Entity
+      description: "The binary sensor entity representing the zone to bypass."
+      required: true
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: ksenia

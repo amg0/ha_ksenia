@@ -67,7 +67,8 @@ async def async_handle_zone_bypass(
     LOGGER.info("Executing bypass for zone %s (index %s, target: %s)", entity_id, zone_index, bypass_target)
 
     try:
-        await client.async_set_zone_bypass(zone_id=zone_index, pin=pin, bypass=bypass_target)
+        # index + 1 because the API expects 1-based indexing for zones
+        await client.async_set_zone_bypass(zone_id=zone_index + 1, pin=pin, bypass=bypass_target)
         # Request immediate refresh to update the UI
         await coordinator.async_request_refresh()
         LOGGER.debug("Bypass successfully executed for %s", entity_id)
