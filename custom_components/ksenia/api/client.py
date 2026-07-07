@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from enum import Enum, StrEnum
+from enum import StrEnum
 import socket
 from typing import TypedDict
 from xml.etree import ElementTree as ET
@@ -32,7 +32,7 @@ class AlarmInfo(TypedDict):
     build: str
 
 
-class ZoneStatus(Enum):
+class ZoneStatus(StrEnum):
     """Status of alarm zone."""
 
     UNKNOWN = "UNKNOWN"
