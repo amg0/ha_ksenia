@@ -59,6 +59,7 @@ class KseniaLaresButton(ButtonEntity, KseniaLaresEntity):
                 )
                 if "cmdSent" in xml:
                     LOGGER.debug("Scenario %s executed successfully. Response: %s", scenario.name, xml)
+                    await self.coordinator.async_request_refresh()
                 else:
                     LOGGER.warning("Scenario %s execution failed. Response: %s", scenario.name, xml)
             except KseniaLaresApiClientError as exception:

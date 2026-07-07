@@ -87,6 +87,8 @@ async def async_handle_run_scenario(
 
     try:
         await client.async_run_scenario(scenario_id=scenario_id, pin=pin if not nopin else None)
+        await entry.runtime_data.coordinator.async_request_refresh()
+
     except Exception as exception:
         raise HomeAssistantError(f"Failed to execute scenario '{scenario_name}': {exception}") from exception
 
