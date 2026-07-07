@@ -284,6 +284,47 @@ class KSeniaV3Card extends LitElement {
         white-space: nowrap;
         text-overflow: ellipsis;
       }
+      .zone-item.bypass {
+        border-color: rgba(241, 196, 15, 0.3);
+        background: rgba(241, 196, 15, 0.05);
+      }
+      .zone-item.bypass .analog-icon {
+        position: relative;
+      }
+      .zone-item.bypass .analog-icon::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 140%;
+        height: 2px;
+        background-color: rgba(241, 196, 15, 0.7);
+        transform: translate(-50%, -50%) rotate(-45deg);
+        pointer-events: none;
+      }
+      /* Button Styles */
+      .button-grid {
+        grid-template-columns: repeat(var(--button-columns, 4), 1fr);
+      }
+      .button-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 8px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+      }
+      .button-item:hover {
+        background: rgba(0, 0, 0, 0.12);
+        border-color: rgba(255, 255, 255, 0.15);
+      }
     `;
   }
 
@@ -362,19 +403,30 @@ static getStubConfig() {
 
     // Enrich sensors with readable labels and sort: doors first, then motion, each group alphabetically by name
     const zoneItems = zoneSensors.map(sensor => {
-      const isDoor = sensor.attributes.device_class === 'door';
-      const label = isDoor
-        ? (sensor.state === 'on' ? 'Open' : 'Closed')
-        : (sensor.state === 'on' ? 'Motion' : 'No motion');
-      return { sensor, isDoor, label };
+      const attr = sensor.attributes;
+      const isDoor = attr.device_class === 'door';
+      const stateOn = sensor.state === 'on';
+
+      // Accès direct à l'attribut (Standard Home Assistant)
+      // On considère que l'intégration suit les normes (minuscules/snake_case)
+      const isBypass = String(attr.bypass || '').toUpperCase() === 'BYPASS';
+
+      // Construction du label
+      let label = isDoor
+        ? (stateOn ? 'Open' : 'Closed')
+        : (stateOn ? 'Motion' : 'No motion');
+
+      if (isBypass) label += ', bypass';
+
+      return { sensor, isDoor, isBypass, label };
     }).sort((a, b) => {
-      // Primary sort: doors first (0), then others (1)
-      const typeDiff = (a.isDoor ? 0 : 1) - (b.isDoor ? 0 : 1);
+      // Tri primaire : Portes d'abord (true < false en soustraction)
+      const typeDiff = (b.isDoor - a.isDoor);
       if (typeDiff !== 0) return typeDiff;
-      // Secondary sort: alphabetical by friendly_name
-      const nameA = a.sensor.attributes.friendly_name || '';
-      const nameB = b.sensor.attributes.friendly_name || '';
-      return nameA.localeCompare(nameB);
+
+      // Tri secondaire : Nom convivial
+      return (a.sensor.attributes.friendly_name || '')
+        .localeCompare(b.sensor.attributes.friendly_name || '');
     });
 
     // Partition status mapping
@@ -401,6 +453,21 @@ static getStubConfig() {
         color: statusInfo.color,
       };
     }).sort((a, b) => {
+      const nameA = a.sensor.attributes.friendly_name || '';
+      const nameB = b.sensor.attributes.friendly_name || '';
+      return nameA.localeCompare(nameB);
+    });
+
+    // Collect button entities from hass states
+    const buttonEntities = Object.keys(this.hass.states)
+      .map(id => this.hass.states[id])
+      .filter(s => s.entity_id && s.entity_id.startsWith('button.'));
+
+    // Enrich buttons with labels and sort alphabetically
+    const buttonItems = buttonEntities.map(sensor => ({
+      sensor,
+      label: sensor.attributes?.friendly_name || sensor.entity_id,
+    })).sort((a, b) => {
       const nameA = a.sensor.attributes.friendly_name || '';
       const nameB = b.sensor.attributes.friendly_name || '';
       return nameA.localeCompare(nameB);
@@ -439,11 +506,28 @@ static getStubConfig() {
           </div>
         ` : html``}
 
+        ${buttonItems && buttonItems.length ? html`
+          <div class="section-title">Buttons</div>
+          <div class="grid button-grid" style="--button-columns: ${this.config.partition_columns || 4}">
+            ${buttonItems.map(item => html`
+              <div class="button-item" title="${item.sensor.entity_id}" @click=${() => this.hass.callService('button', 'press', { entity_id: item.sensor.entity_id })}>
+                <ha-icon
+                  icon="mdi:gesture-tap-button"
+                  style="color: var(--accent-color, #3498db); font-size: 1em;"
+                ></ha-icon>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.label)}</div>
+                </div>
+              </div>
+            `)}
+          </div>
+        ` : html``}
+
         ${zoneItems && zoneItems.length ? html`
           <div class="section-title">Zones</div>
           <div class="grid zone-grid" style="--zone-columns: ${this.config.zone_columns || 4}">
             ${zoneItems.map(item => html`
-              <div class="zone-item" title="${item.sensor.entity_id}">
+              <div class="zone-item${item.isBypass ? ' bypass' : ''}" title="${item.sensor.entity_id}">
                 <ha-icon
                   class="analog-icon"
                   icon="${item.isDoor ? 'mdi:door' : 'mdi:motion-sensor'}"
