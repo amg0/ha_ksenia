@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from custom_components.ksenia.const import DOMAIN
 from custom_components.ksenia.entity import KseniaLaresEntity
 from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySensorEntityDescription
 
@@ -36,4 +37,5 @@ class KseniaLaresConnectivitySensor(BinarySensorEntity, KseniaLaresEntity):
         """Return additional state attributes."""
         return {
             "update_interval": str(self.coordinator.update_interval),
+            "integration": DOMAIN,
         }

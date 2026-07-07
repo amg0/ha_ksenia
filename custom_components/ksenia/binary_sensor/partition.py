@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from custom_components.ksenia.api.client import PartitionStatus
-from custom_components.ksenia.const import ATTRIBUTION
+from custom_components.ksenia.const import ATTRIBUTION, DOMAIN
 from custom_components.ksenia.coordinator import KseniaLaresDataUpdateCoordinator
 from custom_components.ksenia.entity import KseniaLaresEntity
 from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySensorEntityDescription
@@ -48,4 +48,4 @@ class KseniaLaresPartitionBinarySensor(BinarySensorEntity, KseniaLaresEntity):
         """Return additional partition state attributes."""
         partition = self._coordinator.partitions.get(self._partition_name, None)
 
-        return {"partition_status": str(partition.status if partition else "UNKNOWN")}
+        return {"partition_status": str(partition.status if partition else "UNKNOWN"), "integration": DOMAIN}

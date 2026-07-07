@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api import KseniaLaresApiClientError
-from custom_components.ksenia.const import LOGGER
+from custom_components.ksenia.const import DOMAIN, LOGGER
 from custom_components.ksenia.entity import KseniaLaresEntity
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.exceptions import HomeAssistantError
@@ -64,3 +64,11 @@ class KseniaLaresButton(ButtonEntity, KseniaLaresEntity):
             except KseniaLaresApiClientError as exception:
                 msg = f"Failed to reset filter: {exception}"
                 raise HomeAssistantError(msg) from exception
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str]:
+        """Return additional zone state attributes."""
+
+        return {
+            "integration": DOMAIN,
+        }
