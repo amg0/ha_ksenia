@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.8](https://github.com/amg0/ha_ksenia/compare/v0.2.7...v0.2.8) (2026-07-07)
+
+
+### Features
+
+* show bypassed resources ([20d8458](https://github.com/amg0/ha_ksenia/commit/20d84588e0b5fec7f427ad0de8b5e51442656424))
+
 ## [0.2.7](https://github.com/amg0/ha_ksenia/compare/v0.2.6...v0.2.7) (2026-07-06)
 
 
