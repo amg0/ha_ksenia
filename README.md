@@ -182,9 +182,9 @@ Reports the status of each alarm partition on your KSenia panel. One entity is c
 
 **Attributes:**
 
-| Attribute          | Type  | Description                                                             |
-| ------------------ | ----- | ----------------------------------------------------------------------- |
-| `partition_status` | `str` | Current partition status (e.g., `DISARMED`, `ARMED_HOME`, `ARMED_AWAY`) |
+| Attribute          | Type  | Description                                                                                          |
+| ------------------ | ----- | ---------------------------------------------------------------------------------------------------- |
+| `partition_status` | `str` | Current partition status (e.g., `DISARMED`, `EXIT`, `ARMED_IMMEDIATE`, `ARMED`, `PREALARM`, `ALARM`) |
 
 #### Zone Sensors
 
@@ -210,7 +210,7 @@ Zone entities are created dynamically based on your KSenia hardware. Each zone's
 
 #### Scenario Button
 
-One button is created for each alarm scenario configured on your KSenia panel. Pressing the button executes the corresponding scenario.
+One button is created for each alarm scenario configured on your KSenia panel. Pressing the button or calling the standard button_press action executes the corresponding scenario.
 
 **Requires:** A PIN code must be entered in the integration options for scenarios to execute successfully.
 
@@ -265,6 +265,13 @@ This integration supports Ksenia Lares alarm panels. The following components ar
 ## Lovelace Custom Card
 
 This integration includes a built-in Lovelace card called `custom:ksenia-card`.
+The card shows different area with:
+
+- the status of each partition
+- the available alarm scenario as button which can be pressed
+- the status of each zone with a cross over if the zone is in ByPass mode
+
+![Integration_Image](docs/customcard.png)
 
 ### Installation
 
