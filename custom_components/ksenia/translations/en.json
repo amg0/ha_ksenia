@@ -1,4 +1,18 @@
 {
+  "services": {
+    "reload_data": {
+      "name": "Reload data",
+      "description": "Force a refresh of the integration data from the API."
+    },
+    "run_scenario": {
+      "name": "Run Scenario",
+      "description": "Run a Ksenia scenario by name using a target entity."
+    },
+    "zone_bypass": {
+      "name": "Toggle Zone Bypass",
+      "description": "Toggles the bypass (exclusion) state of a Ksenia alarm zone. If the zone is active, it will be bypassed, and vice versa."
+    }
+  },
   "config": {
     "step": {
       "user": {

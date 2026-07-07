@@ -1,4 +1,18 @@
 {
+  "services": {
+    "reload_data": {
+      "name": "Recharger les données",
+      "description": "Force un rafraîchissement des données de l'intégration à partir de l'API."
+    },
+    "run_scenario": {
+      "name": "Exécuter un scénario",
+      "description": "Exécute un scénario Ksenia par son nom en utilisant une entité cible."
+    },
+    "zone_bypass": {
+      "name": "Inverser l'exclusion de zone",
+      "description": "Bascule l'état d'exclusion (bypass) d'une zone d'alarme Ksenia. Si la zone est incluse, elle sera exclue, et inversement."
+    }
+  },
   "config": {
     "step": {
       "user": {
