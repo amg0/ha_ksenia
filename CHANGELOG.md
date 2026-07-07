@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.10](https://github.com/amg0/ha_ksenia/compare/v0.2.9...v0.2.10) (2026-07-07)
+
+
+### Features
+
+* Implement zone bypass service action for Ksenia integration in Home Assistant. ([f004e20](https://github.com/amg0/ha_ksenia/commit/f004e20bea43156abbcc90dd818a0f922399e768))
+* localization FR for scenario helper text ([67f9a1f](https://github.com/amg0/ha_ksenia/commit/67f9a1f756731ddc4ff460e8bdc9a9c07ebc5f8a))
+* proper declaration of the service zone_bypass ([aa8ac62](https://github.com/amg0/ha_ksenia/commit/aa8ac6269a3b53149fe1261c7bf61a9e60fc4a9a))
+* trigger instantaneous refresh after Scenario Run ([b8752f1](https://github.com/amg0/ha_ksenia/commit/b8752f134f3faa71bdfbe704267f06db8d628c16))
+
+
+### Bug Fixes
+
+* 1 based indexing in the KSenia Zone API ([aa8ac62](https://github.com/amg0/ha_ksenia/commit/aa8ac6269a3b53149fe1261c7bf61a9e60fc4a9a))
+
 ## [0.2.9](https://github.com/amg0/ha_ksenia/compare/v0.2.8...v0.2.9) (2026-07-07)
 
 
