@@ -328,13 +328,13 @@ class KSeniaV3Card extends LitElement {
     `;
   }
 
-static getStubConfig() {
-  return {
-    title: "KSenia V3 Panel",
-    zone_columns: 4,
-    partition_columns: 4
-  };
-}
+  static getStubConfig() {
+    return {
+      title: "KSenia V3 Panel",
+      zone_columns: 4,
+      partition_columns: 4
+    };
+  }
 
   shouldUpdate(changedProps) {
     if (changedProps.has('config')) return true;
@@ -345,14 +345,24 @@ static getStubConfig() {
 
       for (const entityId in this.hass.states) {
         const stateObj = this.hass.states[entityId];
-        const deviceClass = stateObj.attributes && stateObj.attributes.device_class;
-        const isConnectivity = deviceClass === 'connectivity';
-        const isZoneBinary = entityId.startsWith('binary_sensor.') && (deviceClass === 'door' || deviceClass === 'motion');
-        const isPartition = entityId.startsWith('binary_sensor.') && deviceClass === 'lock';
+        const oldStateObj = oldHass.states[entityId];
 
-        if (isConnectivity || isZoneBinary || isPartition) {
-          if (oldHass.states[entityId] !== stateObj) {
-            return true;
+        // Process only if the state changed
+        if (stateObj !== oldStateObj) {
+          const attr = stateObj.attributes;
+
+          // Optimization: Check if it's our Ksenia integration
+          if (attr && attr.integration && attr.integration.toLowerCase() === 'ksenia') {
+            const deviceClass = attr.device_class;
+
+            const isConnectivity = deviceClass === 'connectivity';
+            const isZoneBinary = entityId.startsWith('binary_sensor.') && (deviceClass === 'door' || deviceClass === 'motion');
+            const isPartition = entityId.startsWith('binary_sensor.') && deviceClass === 'lock';
+            const isButton = entityId.startsWith('button.');
+
+            if (isConnectivity || isZoneBinary || isPartition || isButton) {
+              return true; // Fast exit, trigger render
+            }
           }
         }
       }
@@ -360,30 +370,35 @@ static getStubConfig() {
     }
     return true;
   }
-/*
-        ${connectionEntity ? html`
-          <div style="text-align: center; padding: 16px 0;">
-            <ha-icon
-              icon="${isOnline ? 'mdi:check-circle' : 'mdi:close-circle'}"
-              style="font-size: 3em; color: ${isOnline ? '#2ecc71' : '#e74c3c'};"
-            ></ha-icon>
-            <div style="margin-top: 12px; font-size: 0.9em; color: var(--secondary-text-color);">
-              ${this._stripKsenia(connectionEntity.attributes.friendly_name) || 'API Connectivity'}
-            </div>
-          </div>
-        ` : html`
-          <div style="padding: 20px 0; text-align: center; color: var(--secondary-text-color); font-style: italic;">
-            No API connectivity sensor found.
-          </div>
-        `}
-*/
 
   render() {
     if (!this.hass || !this.config) return html``;
 
-    const connectionEntity = Object.keys(this.hass.states)
-      .map(id => this.hass.states[id])
-      .find(stateObj => stateObj.attributes && stateObj.attributes.device_class === 'connectivity');
+    let connectionEntity = null;
+    const zoneSensors = [];
+    const partitionSensors = [];
+    const buttonEntities = [];
+
+    // Optimization: Single-pass iteration to categorize all Ksenia entities
+    for (const entityId in this.hass.states) {
+      const stateObj = this.hass.states[entityId];
+      const attr = stateObj.attributes;
+
+      // Restrict entirely to integration: Ksenia
+      if (!attr || !attr.integration || attr.integration.toLowerCase() !== 'ksenia') continue;
+
+      if (attr.device_class === 'connectivity') {
+        connectionEntity = stateObj;
+      } else if (entityId.startsWith('binary_sensor.')) {
+        if (attr.device_class === 'door' || attr.device_class === 'motion') {
+          zoneSensors.push(stateObj);
+        } else if (attr.device_class === 'lock') {
+          partitionSensors.push(stateObj);
+        }
+      } else if (entityId.startsWith('button.')) {
+        buttonEntities.push(stateObj);
+      }
+    }
 
     const isOnline = connectionEntity ? connectionEntity.state === 'on' : false;
     const statusText = connectionEntity ? (isOnline ? "Online" : "Offline") : "No sensor";
@@ -391,42 +406,21 @@ static getStubConfig() {
     const rawTitle = this.config.title || (connectionEntity?.attributes.friendly_name ? connectionEntity.attributes.friendly_name.replace(" API connectivity", "") : "KSenia V3 Panel");
     const cardTitle = this._stripKsenia(rawTitle);
 
-    // Collect binary zone sensors (door / motion) from hass states
-    const zoneSensors = Object.keys(this.hass.states)
-      .map(id => this.hass.states[id])
-      .filter(s => s.entity_id && s.entity_id.startsWith('binary_sensor.') && s.attributes && (s.attributes.device_class === 'door' || s.attributes.device_class === 'motion'));
-
-    // Collect partition sensors from hass states
-    const partitionSensors = Object.keys(this.hass.states)
-      .map(id => this.hass.states[id])
-      .filter(s => s.entity_id && s.entity_id.startsWith('binary_sensor.') && s.attributes && s.attributes.device_class === 'lock');
-
-    // Enrich sensors with readable labels and sort: doors first, then motion, each group alphabetically by name
+    // Enrich and sort Zones
     const zoneItems = zoneSensors.map(sensor => {
       const attr = sensor.attributes;
       const isDoor = attr.device_class === 'door';
       const stateOn = sensor.state === 'on';
-
-      // Accès direct à l'attribut (Standard Home Assistant)
-      // On considère que l'intégration suit les normes (minuscules/snake_case)
       const isBypass = String(attr.bypass || '').toUpperCase() === 'BYPASS';
 
-      // Construction du label
-      let label = isDoor
-        ? (stateOn ? 'Open' : 'Closed')
-        : (stateOn ? 'Motion' : 'No motion');
-
+      let label = isDoor ? (stateOn ? 'Open' : 'Closed') : (stateOn ? 'Motion' : 'No motion');
       if (isBypass) label += ', bypass';
 
       return { sensor, isDoor, isBypass, label };
     }).sort((a, b) => {
-      // Tri primaire : Portes d'abord (true < false en soustraction)
       const typeDiff = (b.isDoor - a.isDoor);
       if (typeDiff !== 0) return typeDiff;
-
-      // Tri secondaire : Nom convivial
-      return (a.sensor.attributes.friendly_name || '')
-        .localeCompare(b.sensor.attributes.friendly_name || '');
+      return (a.sensor.attributes.friendly_name || '').localeCompare(b.sensor.attributes.friendly_name || '');
     });
 
     // Partition status mapping
@@ -440,12 +434,12 @@ static getStubConfig() {
       'unknown': { label: 'Unknown', icon: 'mdi:help-circle', color: 'var(--secondary-text-color)' },
     };
 
-    // Enrich partition sensors with status labels and sort alphabetically
+    // Enrich and sort Partitions
     const partitionItems = partitionSensors.map(sensor => {
       const statusRaw = sensor.attributes?.partition_status || 'unknown';
       const statusKey = statusRaw.toLowerCase().replace(/\s+/g, '_');
-      console.log(`Partition sensor ${sensor.entity_id} has raw status: ${statusRaw} (key: ${statusKey})`);
       const statusInfo = partitionStatusMap[statusKey] || partitionStatusMap['unknown'];
+
       return {
         sensor,
         label: statusInfo.label,
@@ -453,24 +447,15 @@ static getStubConfig() {
         color: statusInfo.color,
       };
     }).sort((a, b) => {
-      const nameA = a.sensor.attributes.friendly_name || '';
-      const nameB = b.sensor.attributes.friendly_name || '';
-      return nameA.localeCompare(nameB);
+      return (a.sensor.attributes.friendly_name || '').localeCompare(b.sensor.attributes.friendly_name || '');
     });
 
-    // Collect button entities from hass states
-    const buttonEntities = Object.keys(this.hass.states)
-      .map(id => this.hass.states[id])
-      .filter(s => s.entity_id && s.entity_id.startsWith('button.'));
-
-    // Enrich buttons with labels and sort alphabetically
+    // Enrich and sort Buttons
     const buttonItems = buttonEntities.map(sensor => ({
       sensor,
       label: sensor.attributes?.friendly_name || sensor.entity_id,
     })).sort((a, b) => {
-      const nameA = a.sensor.attributes.friendly_name || '';
-      const nameB = b.sensor.attributes.friendly_name || '';
-      return nameA.localeCompare(nameB);
+      return a.label.localeCompare(b.label);
     });
 
     return html`
@@ -492,10 +477,7 @@ static getStubConfig() {
             ${partitionItems.map(item => html`
               <div class="partition-item" title="${item.sensor.entity_id}">
                 <div class="partition-icon" style="background-color: ${item.color}20;">
-                  <ha-icon
-                    icon="${item.icon}"
-                    style="color: ${item.color}; font-size: 1em;"
-                  ></ha-icon>
+                  <ha-icon icon="${item.icon}" style="color: ${item.color}; font-size: 1em;"></ha-icon>
                 </div>
                 <div style="flex:1; min-width:0;">
                   <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.sensor.attributes.friendly_name) || item.sensor.entity_id}</div>
@@ -504,24 +486,21 @@ static getStubConfig() {
               </div>
             `)}
           </div>
-        ` : html``}
+        ` : ''}
 
         ${buttonItems && buttonItems.length ? html`
           <div class="section-title">Buttons</div>
           <div class="grid button-grid" style="--button-columns: ${this.config.partition_columns || 4}">
             ${buttonItems.map(item => html`
               <div class="button-item" title="${item.sensor.entity_id}" @click=${() => this.hass.callService('button', 'press', { entity_id: item.sensor.entity_id })}>
-                <ha-icon
-                  icon="mdi:gesture-tap-button"
-                  style="color: var(--accent-color, #3498db); font-size: 1em;"
-                ></ha-icon>
+                <ha-icon icon="mdi:gesture-tap-button" style="color: var(--accent-color, #3498db); font-size: 1em;"></ha-icon>
                 <div style="flex:1; min-width:0;">
                   <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.label)}</div>
                 </div>
               </div>
             `)}
           </div>
-        ` : html``}
+        ` : ''}
 
         ${zoneItems && zoneItems.length ? html`
           <div class="section-title">Zones</div>
@@ -540,7 +519,7 @@ static getStubConfig() {
               </div>
             `)}
           </div>
-        ` : html``}
+        ` : ''}
       </ha-card>
     `;
   }
@@ -561,7 +540,6 @@ static getStubConfig() {
 
   _stripKsenia(name) {
     if (!name || typeof name !== 'string') return name;
-    // Remove occurrences of "Ksenia Lares" (case-insensitive) and trim extra whitespace
     return name.replace(/Ksenia Lares/gi, '').replace(/\s{2,}/g, ' ').trim();
   }
 
@@ -591,18 +569,9 @@ class KSeniaV3CardEditor extends LitElement {
     }
 
     const schema = [
-      {
-        name: "title",
-        selector: { text: {} }
-      },
-      {
-        name: "zone_columns",
-        selector: { number: { min: 1, max: 8, step: 1 } }
-      },
-      {
-        name: "partition_columns",
-        selector: { number: { min: 1, max: 8, step: 1 } }
-      }
+      { name: "title", selector: { text: {} } },
+      { name: "zone_columns", selector: { number: { min: 1, max: 8, step: 1 } } },
+      { name: "partition_columns", selector: { number: { min: 1, max: 8, step: 1 } } }
     ];
 
     return html`
