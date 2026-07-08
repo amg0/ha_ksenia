@@ -5,10 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.const import DOMAIN, LOGGER
-from custom_components.ksenia.service_actions.example_service import (
-    async_handle_example_action,
-    async_handle_reload_data,
-)
+from custom_components.ksenia.service_actions.example_service import async_handle_reload_data
 from custom_components.ksenia.service_actions.run_scenario import async_handle_run_scenario
 from custom_components.ksenia.service_actions.zone_bypass import async_handle_zone_bypass
 from homeassistant.core import ServiceCall
@@ -35,18 +32,6 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
     Service handlers iterate over all config entries to find the relevant one.
     """
-
-    async def handle_example_action(call: ServiceCall) -> None:
-        """Handle the example_action service call."""
-        # Find all config entries for this domain
-        entries = hass.config_entries.async_entries(DOMAIN)
-        if not entries:
-            LOGGER.warning("No config entries found for %s", DOMAIN)
-            return
-
-        # Use first entry (or implement logic to select specific entry)
-        entry = entries[0]
-        await async_handle_example_action(hass, entry, call)
 
     async def handle_reload_data(call: ServiceCall) -> None:
         """Handle the reload_data service call."""
@@ -77,13 +62,6 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             await async_handle_zone_bypass(hass, entry, call)
 
     # Register services (only once at component level)
-    if not hass.services.has_service(DOMAIN, SERVICE_EXAMPLE_ACTION):
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_EXAMPLE_ACTION,
-            handle_example_action,
-        )
-
     if not hass.services.has_service(DOMAIN, SERVICE_RELOAD_DATA):
         hass.services.async_register(
             DOMAIN,

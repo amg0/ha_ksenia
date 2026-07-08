@@ -14,49 +14,6 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse
 
 
-async def async_handle_example_action(
-    hass: HomeAssistant,
-    entry: KseniaLaresConfigEntry,
-    call: ServiceCall,
-) -> None:
-    """
-    Handle the example_action service action call.
-
-    This is a dummy service action that demonstrates how to implement custom service actions.
-
-    Args:
-        hass: Home Assistant instance
-        entry: Config entry for the integration
-        call: Service call data
-    """
-    LOGGER.info("Example action service called with data: %s", call.data)
-
-    # Example: Access the coordinator
-    # coordinator = entry.runtime_data.coordinator
-
-    # Example: Access the API client
-    # client = entry.runtime_data.client
-
-    # Example: Do something with the service call data
-    action_type = call.data.get("action_type", "default")
-    target_value = call.data.get("target_value")
-
-    LOGGER.debug(
-        "Processing action type: %s with target value: %s",
-        action_type,
-        target_value,
-    )
-
-    # In a real implementation, you would:
-    # - Validate the input
-    # - Call API methods via client
-    # - Update coordinator data if needed
-    # - Handle errors appropriately
-
-    # For now, this is just a dummy that logs the action
-    LOGGER.info("Example action completed successfully")
-
-
 async def async_handle_reload_data(
     hass: HomeAssistant,
     entry: KseniaLaresConfigEntry,

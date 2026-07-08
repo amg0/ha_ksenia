@@ -300,6 +300,9 @@ zone_columns: 4
 | `zone_columns`      | number | `4`               | Number of columns used to display the zone sensors. Valid values are 1–8. |
 | `partition_columns` | number | `4`               | Number of columns used to display the partitions. Valid values are 1–8.   |
 
+> [!TIP]
+> On small screen ( like phone ) the columns parameter may be ignored and forced to a small screen layout format automatically
+
 ### Example Configuration
 
 A simple card configuration with a custom title and 3 columns for zone sensors:
