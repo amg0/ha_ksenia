@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.12](https://github.com/amg0/ha_ksenia/compare/v0.2.11...v0.2.12) (2026-07-08)
+
+
+### Features
+
+* cllickable zone button on lovelace card to control the BYPASS state ([ca2fcd4](https://github.com/amg0/ha_ksenia/commit/ca2fcd4ccffd9a26957ffd9da8a07df1b5b30466))
+
+
+### Bug Fixes
+
+* cleanup code ([e4294ca](https://github.com/amg0/ha_ksenia/commit/e4294cae1de405d5886b49863a8013bb811bf7ff))
+
 ## [0.2.11](https://github.com/amg0/ha_ksenia/compare/v0.2.10...v0.2.11) (2026-07-08)
 
 
