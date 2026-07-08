@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.13](https://github.com/amg0/ha_ksenia/compare/v0.2.12...v0.2.13) (2026-07-08)
+
+
+### Bug Fixes
+
+* force immediate data refresh when a button is clicked ([fd86549](https://github.com/amg0/ha_ksenia/commit/fd86549974a06000973529c66de7fd971e38884c))
+
 ## [0.2.12](https://github.com/amg0/ha_ksenia/compare/v0.2.11...v0.2.12) (2026-07-08)
 
 
