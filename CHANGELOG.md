@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.11](https://github.com/amg0/ha_ksenia/compare/v0.2.10...v0.2.11) (2026-07-08)
+
+
+### Features
+
+* optimize lovelace layout on phone ([7cda850](https://github.com/amg0/ha_ksenia/commit/7cda8509be30a306a2accafc53a79d2548af4bb7))
+
 ## [0.2.10](https://github.com/amg0/ha_ksenia/compare/v0.2.9...v0.2.10) (2026-07-07)
 
 
