@@ -85,7 +85,7 @@ class KSeniaV3Card extends LitElement {
         text-transform: uppercase;
         letter-spacing: 1.5px;
         color: var(--secondary-text-color, #bac2de);
-        margin: 18px 0 10px 0; /* Légèrement augmenté pour aérer */
+        margin: 12px 0 8px 0; /* Optimized for space */
         font-weight: 600;
       }
       .section-title::after {
@@ -97,7 +97,7 @@ class KSeniaV3Card extends LitElement {
       }
       .grid {
         display: grid;
-        gap: 8px;
+        gap: 6px; /* Optimized gap for space */
         margin-bottom: 12px;
       }
       /* Relay Styles */
@@ -139,7 +139,7 @@ class KSeniaV3Card extends LitElement {
         gap: 8px;
         background: rgba(0, 0, 0, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.03);
-        padding: 8px;
+        padding: 6px;
         border-radius: 6px;
         font-size: 0.85em;
         overflow: hidden;
@@ -251,7 +251,7 @@ class KSeniaV3Card extends LitElement {
         gap: 8px;
         background: rgba(0, 0, 0, 0.12);
         border: 1px solid rgba(255, 255, 255, 0.03);
-        padding: 8px;
+        padding: 6px; /* Optimized for space */
         border-radius: 6px;
         font-size: 0.85em;
         overflow: hidden;
@@ -277,7 +277,7 @@ class KSeniaV3Card extends LitElement {
         gap: 8px;
         background: rgba(0, 0, 0, 0.12);
         border: 1px solid rgba(255, 255, 255, 0.03);
-        padding: 8px;
+        padding: 6px; /* Optimized for space */
         border-radius: 6px;
         font-size: 0.85em;
         overflow: hidden;
@@ -312,7 +312,7 @@ class KSeniaV3Card extends LitElement {
         gap: 8px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 8px;
+        padding: 6px; /* Optimized for space */
         border-radius: 6px;
         font-size: 0.85em;
         overflow: hidden;
@@ -324,6 +324,34 @@ class KSeniaV3Card extends LitElement {
       .button-item:hover {
         background: rgba(0, 0, 0, 0.12);
         border-color: rgba(255, 255, 255, 0.15);
+      }
+
+      /* --- Mobile Responsiveness --- */
+      @media screen and (max-width: 600px) {
+        /* Reduce main card padding to save space */
+        ha-card {
+          padding: 10px;
+        }
+
+        /* Drop to 2 columns on mobile devices */
+        .partition-grid,
+        .button-grid,
+        .zone-grid,
+        .relay-grid,
+        .input-grid {
+          grid-template-columns: repeat(2, 1fr) !important;
+        }
+      }
+
+      @media screen and (max-width: 380px) {
+        /* Drop to 1 column on extremely narrow phones */
+        .partition-grid,
+        .button-grid,
+        .zone-grid,
+        .relay-grid,
+        .input-grid {
+          grid-template-columns: 1fr !important;
+        }
       }
     `;
   }
