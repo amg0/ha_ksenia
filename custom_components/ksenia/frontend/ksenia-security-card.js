@@ -283,7 +283,17 @@ class KSeniaV3Card extends LitElement {
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
+
+        /* NEW: Added pointer and transition for interactivity */
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
       }
+      /* NEW: Added hover state for zone items */
+      .zone-item:hover {
+        background: rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+
       .zone-item.bypass {
         border-color: rgba(241, 196, 15, 0.3);
         background: rgba(241, 196, 15, 0.05);
@@ -534,7 +544,11 @@ class KSeniaV3Card extends LitElement {
           <div class="section-title">Zones</div>
           <div class="grid zone-grid" style="--zone-columns: ${this.config.zone_columns || 4}">
             ${zoneItems.map(item => html`
-              <div class="zone-item${item.isBypass ? ' bypass' : ''}" title="${item.sensor.entity_id}">
+              <div
+                class="zone-item${item.isBypass ? ' bypass' : ''}"
+                title="${item.sensor.entity_id}"
+                @click=${() => this.hass.callService('ksenia', 'zone_bypass', { entity_id: item.sensor.entity_id })}
+              >
                 <ha-icon
                   class="analog-icon"
                   icon="${item.isDoor ? 'mdi:door' : 'mdi:motion-sensor'}"
