@@ -69,8 +69,10 @@ async def async_handle_zone_bypass(
     try:
         # index + 1 because the API expects 1-based indexing for zones
         await client.async_set_zone_bypass(zone_id=zone_index + 1, pin=pin, bypass=bypass_target)
-        # Request immediate refresh to update the UI
-        await coordinator.async_request_refresh()
+        # Force immediate data refresh after executing the scenario, so that the state of entities is updated
+        # await coordinator.async_request_refresh()
+        await coordinator.async_refresh()
+
         LOGGER.debug("Bypass successfully executed for %s", entity_id)
 
     except Exception as err:
