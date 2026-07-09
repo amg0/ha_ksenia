@@ -193,6 +193,8 @@ class KseniaLaresApiClient:
 
     """
 
+    _alarminfo: AlarmInfo | None
+
     def __init__(
         self,
         host: str,
@@ -211,12 +213,13 @@ class KseniaLaresApiClient:
             session: The aiohttp ClientSession to use for requests.
 
         """
-        self._alarminfo = None
+
         self._host = host
         self._port = port
         self._username = username
         self._password = password
         self._session = session
+        self._alarminfo = None
 
     @property
     def _base_url(self) -> str:
@@ -226,6 +229,13 @@ class KseniaLaresApiClient:
     def _auth(self) -> aiohttp.BasicAuth:
         """Return the BasicAuth object for requests."""
         return aiohttp.BasicAuth(self._username, self._password)
+
+    @property
+    def _model(self) -> str:
+        """Return the model of the Ksenia controller."""
+        if self._alarminfo is None:
+            raise ValueError("Alarm info not fetched yet.")
+        return self._alarminfo["model"]
 
     async def async_get_alarm_info(self) -> AlarmInfo:
         """
@@ -240,7 +250,7 @@ class KseniaLaresApiClient:
         general_info_el = ET.fromstring(response)  # noqa: S314
         product_name = general_info_el.findtext("productName", default="") or ""
         # mac = get_mac_address(ip=self._ip)
-        self._alarminfo: AlarmInfo = {
+        self._alarminfo: AlarmInfo | None = {
             # "mac": mac,
             "host": self._base_url,
             "name": product_name,
@@ -271,7 +281,7 @@ class KseniaLaresApiClient:
         """
         await self.async_get_alarm_info()
         xml_text = await self._api_wrapper(
-            url=f"{self._base_url}/xml/zones/zonesDescription{self._alarminfo['model']}.xml",
+            url=f"{self._base_url}/xml/zones/zonesDescription{self._model}.xml",
         )
         root = ET.fromstring(xml_text)  # noqa: S314
         return [ZoneDescription(description=zone.text or "") for zone in root.findall("zone")]
@@ -293,7 +303,7 @@ class KseniaLaresApiClient:
 
         """
         xml_text = await self._api_wrapper(
-            url=f"{self._base_url}/xml/zones/zonesStatus{self._alarminfo['model']}.xml",
+            url=f"{self._base_url}/xml/zones/zonesStatus{self._model}.xml",
         )
         root = ET.fromstring(xml_text)  # noqa: S314
         statuses: list[ZoneStatusDescription] = []
@@ -346,7 +356,7 @@ class KseniaLaresApiClient:
         """
         # 1. Fetch descriptions to get names
         desc_xml = await self._api_wrapper(
-            url=f"{self._base_url}/xml/partitions/partitionsDescription{self._alarminfo['model']}.xml",
+            url=f"{self._base_url}/xml/partitions/partitionsDescription{self._model}.xml",
         )
         desc_root = ET.fromstring(desc_xml)  # noqa: S314
         # Assuming partition elements contain the name in their text, similar to zones
@@ -354,7 +364,7 @@ class KseniaLaresApiClient:
 
         # 2. Fetch statuses
         stat_xml = await self._api_wrapper(
-            url=f"{self._base_url}/xml/partitions/partitionsStatus{self._alarminfo['model']}.xml",
+            url=f"{self._base_url}/xml/partitions/partitionsStatus{self._model}.xml",
         )
         stat_root = ET.fromstring(stat_xml)  # noqa: S314
 

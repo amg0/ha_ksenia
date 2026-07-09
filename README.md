@@ -22,6 +22,8 @@ Uncomment and customize these badges if you want to use them:
 
 ## ✨ Features
 
+Home Assistant custom integration for KSenia Lares 3.0 16IP, 48IP or 128IP models
+
 - **Easy Setup**: Simple configuration through the UI - no YAML required
 - **Zone Monitoring**: Monitor alarm zone status and chose if it is a motion detection or a contact sensor (door)
 - **Connectivity Tracking**: Real-time tracking of API connection status
