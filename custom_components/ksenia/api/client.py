@@ -240,7 +240,7 @@ class KseniaLaresApiClient:
         general_info_el = ET.fromstring(response)  # noqa: S314
         product_name = general_info_el.findtext("productName", default="") or ""
         # mac = get_mac_address(ip=self._ip)
-        info: AlarmInfo = {
+        self._alarminfo: AlarmInfo = {
             # "mac": mac,
             "host": self._base_url,
             "name": product_name,
@@ -251,7 +251,7 @@ class KseniaLaresApiClient:
             "build": general_info_el.findtext("productBuildRevision", default="") or "",
         }
 
-        return info
+        return self._alarminfo
 
     async def async_get_zone_descriptions(self) -> list[ZoneDescription]:
         """
@@ -269,9 +269,9 @@ class KseniaLaresApiClient:
             KseniaLaresApiClientError: For other API errors.
 
         """
-        self._alarminfo = await self.async_get_alarm_info()
+        await self.async_get_alarm_info()
         xml_text = await self._api_wrapper(
-            url=f"{self._base_url}/xml/zones/zonesDescription16IP.xml",
+            url=f"{self._base_url}/xml/zones/zonesDescription{self._alarminfo['model']}.xml",
         )
         root = ET.fromstring(xml_text)  # noqa: S314
         return [ZoneDescription(description=zone.text or "") for zone in root.findall("zone")]
@@ -293,7 +293,7 @@ class KseniaLaresApiClient:
 
         """
         xml_text = await self._api_wrapper(
-            url=f"{self._base_url}/xml/zones/zonesStatus16IP.xml",
+            url=f"{self._base_url}/xml/zones/zonesStatus{self._alarminfo['model']}.xml",
         )
         root = ET.fromstring(xml_text)  # noqa: S314
         statuses: list[ZoneStatusDescription] = []
@@ -346,7 +346,7 @@ class KseniaLaresApiClient:
         """
         # 1. Fetch descriptions to get names
         desc_xml = await self._api_wrapper(
-            url=f"{self._base_url}/xml/partitions/partitionsDescription16IP.xml",
+            url=f"{self._base_url}/xml/partitions/partitionsDescription{self._alarminfo['model']}.xml",
         )
         desc_root = ET.fromstring(desc_xml)  # noqa: S314
         # Assuming partition elements contain the name in their text, similar to zones
@@ -354,7 +354,7 @@ class KseniaLaresApiClient:
 
         # 2. Fetch statuses
         stat_xml = await self._api_wrapper(
-            url=f"{self._base_url}/xml/partitions/partitionsStatus16IP.xml",
+            url=f"{self._base_url}/xml/partitions/partitionsStatus{self._alarminfo['model']}.xml",
         )
         stat_root = ET.fromstring(stat_xml)  # noqa: S314
 
