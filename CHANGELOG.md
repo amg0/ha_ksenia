@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.0](https://github.com/amg0/ha_ksenia/compare/v0.2.15...v0.5.0) (2026-07-09)
+
+
+### Features
+
+* add new API to query Ksenia alarm model ([7146fca](https://github.com/amg0/ha_ksenia/commit/7146fca4f3f9f48fd01f8b1015d3e68b03baf652))
+* support Ksenia models 16IP 48IP 128IP ([06b6cbb](https://github.com/amg0/ha_ksenia/commit/06b6cbbdae013d4ab1b023aea0af52f91ec2696b))
+
+
+### Bug Fixes
+
+* cleanup Nullable type for _alarminfo ([952aa1b](https://github.com/amg0/ha_ksenia/commit/952aa1bc6b653eedd90e6ce299bea06f2c137027))
+
+
+### Maintenance
+
+* bump versions to 0.5.0 ([53ad187](https://github.com/amg0/ha_ksenia/commit/53ad1873c56c89e625c5d74473c739970a3960a8))
+
 ## [0.2.15](https://github.com/amg0/ha_ksenia/compare/v0.2.14...v0.2.15) (2026-07-09)
 
 
