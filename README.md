@@ -252,7 +252,7 @@ data:
 ```
 
 > [!NOTE]
-> The PIN code must be set in the integration options (Settings → Devices & Services → Ksenia Lares → Configure) for scenarios to execute successfully.
+> The PIN code must be set in the integration options (Settings → Devices & Services → Ksenia Lares → Configure) for scenarios to execute successfully
 
 ## Supported Devices
 
