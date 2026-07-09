@@ -59,12 +59,12 @@ class KseniaLaresButton(ButtonEntity, KseniaLaresEntity):
                     scenario_id=scenario.id, pin=self.coordinator.config_entry.options.get("pin", None)
                 )
                 if "cmdSent" in xml:
-                    LOGGER.debug("Scenario %s executed successfully. Response: %s", scenario.name, xml)
+                    LOGGER.info("Scenario %s executed successfully. Response: %s", scenario.name, xml)
                     await self.coordinator.async_request_refresh()
                 else:
                     LOGGER.warning("Scenario %s execution failed. Response: %s", scenario.name, xml)
             except KseniaLaresApiClientError as exception:
-                msg = f"Failed to reset filter: {exception}"
+                msg = f"Failed to call Ksenia API: {exception}"
                 raise HomeAssistantError(msg) from exception
 
     @property

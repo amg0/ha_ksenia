@@ -64,16 +64,15 @@ async def async_handle_zone_bypass(
     pin = entry.options.get(CONF_PIN)
 
     # 6. Execute action with exception handling
-    LOGGER.info("Executing bypass for zone %s (index %s, target: %s)", entity_id, zone_index, bypass_target)
 
     try:
         # index + 1 because the API expects 1-based indexing for zones
         await client.async_set_zone_bypass(zone_id=zone_index + 1, pin=pin, bypass=bypass_target)
+        LOGGER.info("Success executing bypass for zone %s (index %s, target: %s)", entity_id, zone_index, bypass_target)
+
         # Force immediate data refresh after executing the scenario, so that the state of entities is updated
         # await coordinator.async_request_refresh()
         await coordinator.async_refresh()
-
-        LOGGER.debug("Bypass successfully executed for %s", entity_id)
 
     except Exception as err:
         LOGGER.exception("Error during async_set_zone_bypass API call for %s: %s", entity_id, err)

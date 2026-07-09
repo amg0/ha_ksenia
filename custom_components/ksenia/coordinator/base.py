@@ -144,7 +144,7 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         unchanged from the initial setup fetch.
 
         Returns:
-            KseniaLaresCoordinatorData containing updated zone list.
+            KseniaLaresCoordinatorData containing updated zone list and partition statuses.
 
         Raises:
             ConfigEntryAuthFailed: If authentication fails (triggers reauth).
