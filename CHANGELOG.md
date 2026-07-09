@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.14](https://github.com/amg0/ha_ksenia/compare/v0.2.13...v0.2.14) (2026-07-09)
+
+
+### Bug Fixes
+
+* logging improvements ([6764798](https://github.com/amg0/ha_ksenia/commit/6764798b44d7ba4bd8f8e9bdd8c4bc7f9baabd39))
+
 ## [0.2.13](https://github.com/amg0/ha_ksenia/compare/v0.2.12...v0.2.13) (2026-07-08)
 
 
