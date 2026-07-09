@@ -23,9 +23,10 @@ import aiohttp
 class AlarmInfo(TypedDict):
     """Basic KSenia Lares alarm information."""
 
-    mac: str | None
+    # mac: str | None
     host: str
     name: str
+    model: str
     info: str
     version: str
     revision: str
@@ -210,6 +211,7 @@ class KseniaLaresApiClient:
             session: The aiohttp ClientSession to use for requests.
 
         """
+        self._alarminfo = None
         self._host = host
         self._port = port
         self._username = username
@@ -224,6 +226,32 @@ class KseniaLaresApiClient:
     def _auth(self) -> aiohttp.BasicAuth:
         """Return the BasicAuth object for requests."""
         return aiohttp.BasicAuth(self._username, self._password)
+
+    async def async_get_alarm_info(self) -> AlarmInfo:
+        """
+        Fetch basic alarm information from the Ksenia controller.
+
+        Returns:
+            A dictionary containing alarm info: mac, host, name, info, version, revision, build.
+        """
+        response = await self._api_wrapper(
+            url=f"{self._base_url}/xml/info/generalInfo.xml",
+        )
+        general_info_el = ET.fromstring(response)  # noqa: S314
+        product_name = general_info_el.findtext("productName", default="") or ""
+        # mac = get_mac_address(ip=self._ip)
+        info: AlarmInfo = {
+            # "mac": mac,
+            "host": self._base_url,
+            "name": product_name,
+            "model": product_name.split()[-1],
+            "info": general_info_el.findtext("info1", default="") or "",
+            "version": general_info_el.findtext("productHighRevision", default="") or "",
+            "revision": general_info_el.findtext("productLowRevision", default="") or "",
+            "build": general_info_el.findtext("productBuildRevision", default="") or "",
+        }
+
+        return info
 
     async def async_get_zone_descriptions(self) -> list[ZoneDescription]:
         """
@@ -241,6 +269,7 @@ class KseniaLaresApiClient:
             KseniaLaresApiClientError: For other API errors.
 
         """
+        self._alarminfo = await self.async_get_alarm_info()
         xml_text = await self._api_wrapper(
             url=f"{self._base_url}/xml/zones/zonesDescription16IP.xml",
         )
