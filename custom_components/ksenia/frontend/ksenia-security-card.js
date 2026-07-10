@@ -456,19 +456,19 @@ class KSeniaV3Card extends LitElement {
       switch (deviceClass) {
         case 'door':
           label = stateOn ? 'Open' : 'Closed';
-          icon = 'mdi:door';
+          icon = stateOn ? 'mdi:door-open' : 'mdi:door-closed';
           break;
         case 'window':
           label = stateOn ? 'Open' : 'Closed';
-          icon = 'mdi:window-closed';
+          icon = stateOn ? 'mdi:window-open' : 'mdi:window-closed';
           break;
         case 'smoke':
           label = stateOn ? 'Smoke!' : 'Clear';
-          icon = 'mdi:smoke-detector';
+          icon = stateOn ? 'mdi:smoke-detector-alert' : 'mdi:smoke-detector';
           break;
         default: // motion
           label = stateOn ? 'Motion' : 'No motion';
-          icon = 'mdi:motion-sensor';
+          icon = stateOn ? 'mdi:motion-sensor' : 'mdi:motion-sensor-off';
           break;
       }
       if (isBypass) label += ', bypass';
