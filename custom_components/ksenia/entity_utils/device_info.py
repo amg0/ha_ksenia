@@ -39,7 +39,7 @@ def create_device_info(
         ... )
     """
     return DeviceInfo(
-        identifiers={(config_entry.domain, config_entry.entry_id)},
+        identifiers=get_device_identifiers(config_entry),
         name=name or "Ksenia Lares",
         manufacturer=manufacturer or "Ksenia Lares",
         model=model or "Unknown",
