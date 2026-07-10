@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/amg0/ha_ksenia/compare/v0.5.0...v0.5.1) (2026-07-10)
+
+
+### Features
+
+* add KSenia attributes to the API connectivity sensor attributes. ([3513856](https://github.com/amg0/ha_ksenia/commit/351385645d2ee5cb09cb6c7139c539ff3038c3f0))
+* if not overiden by the user, use the name reported by the KSenia alarm as title of the lovelace card ([3513856](https://github.com/amg0/ha_ksenia/commit/351385645d2ee5cb09cb6c7139c539ff3038c3f0))
+
 ## [0.5.0](https://github.com/amg0/ha_ksenia/compare/v0.2.15...v0.5.0) (2026-07-09)
 
 
