@@ -33,6 +33,19 @@ class AlarmInfo(TypedDict):
     build: str
 
 
+def get_default_alarm_info() -> AlarmInfo:
+    """Return a completely blank/default instance of AlarmInfo."""
+    return {
+        "host": "",
+        "name": "",
+        "model": "",
+        "info": "",
+        "version": "",
+        "revision": "",
+        "build": "",
+    }
+
+
 class ZoneStatus(StrEnum):
     """Status of alarm zone."""
 
@@ -193,7 +206,7 @@ class KseniaLaresApiClient:
 
     """
 
-    _alarminfo: AlarmInfo | None
+    _alarminfo: AlarmInfo
 
     def __init__(
         self,
@@ -219,7 +232,7 @@ class KseniaLaresApiClient:
         self._username = username
         self._password = password
         self._session = session
-        self._alarminfo = None
+        self._alarminfo = get_default_alarm_info()
 
     @property
     def _base_url(self) -> str:
@@ -229,6 +242,11 @@ class KseniaLaresApiClient:
     def _auth(self) -> aiohttp.BasicAuth:
         """Return the BasicAuth object for requests."""
         return aiohttp.BasicAuth(self._username, self._password)
+
+    @property
+    def alarm_info(self) -> AlarmInfo:
+        """Return the basic KSenia Lares alarm information."""
+        return self._alarminfo
 
     @property
     def _model(self) -> str:
@@ -250,18 +268,15 @@ class KseniaLaresApiClient:
         general_info_el = ET.fromstring(response)  # noqa: S314
         product_name = general_info_el.findtext("productName", default="") or ""
         # mac = get_mac_address(ip=self._ip)
-        self._alarminfo: AlarmInfo | None = {
-            # "mac": mac,
-            "host": self._base_url,
-            "name": product_name,
-            "model": product_name.split()[-1],
-            "info": general_info_el.findtext("info1", default="") or "",
-            "version": general_info_el.findtext("productHighRevision", default="") or "",
-            "revision": general_info_el.findtext("productLowRevision", default="") or "",
-            "build": general_info_el.findtext("productBuildRevision", default="") or "",
-        }
-
-        return self._alarminfo
+        return AlarmInfo(
+            host=self._base_url,
+            name=product_name,
+            model=product_name.split()[-1],
+            info=general_info_el.findtext("info1", default="") or "",
+            version=general_info_el.findtext("productHighRevision", default="") or "",
+            revision=general_info_el.findtext("productLowRevision", default="") or "",
+            build=general_info_el.findtext("productBuildRevision", default="") or "",
+        )
 
     async def async_get_zone_descriptions(self) -> list[ZoneDescription]:
         """
@@ -279,7 +294,7 @@ class KseniaLaresApiClient:
             KseniaLaresApiClientError: For other API errors.
 
         """
-        await self.async_get_alarm_info()
+        self._alarminfo = await self.async_get_alarm_info()
         xml_text = await self._api_wrapper(
             url=f"{self._base_url}/xml/zones/zonesDescription{self._model}.xml",
         )

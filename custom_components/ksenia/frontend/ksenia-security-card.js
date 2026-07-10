@@ -441,8 +441,8 @@ class KSeniaV3Card extends LitElement {
     const isOnline = connectionEntity ? connectionEntity.state === 'on' : false;
     const statusText = connectionEntity ? (isOnline ? "Online" : "Offline") : "No sensor";
 
-    const rawTitle = this.config.title || (connectionEntity?.attributes.friendly_name ? connectionEntity.attributes.friendly_name.replace(" API connectivity", "") : "KSenia V3 Panel");
-    const cardTitle = this._stripKsenia(rawTitle);
+    const cardTitle = this.config.title || (connectionEntity?.attributes.name ? connectionEntity.attributes.name : (connectionEntity?.attributes.friendly_name ? connectionEntity.attributes.friendly_name.replace(" API connectivity", "") : "KSenia V3 Panel"));
+    //const cardTitle = this._stripKsenia(rawTitle);
 
     // Enrich and sort Zones
     const zoneItems = zoneSensors.map(sensor => {

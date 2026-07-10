@@ -6,7 +6,7 @@ Ksenia Lares alarm panel.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from custom_components.ksenia.const import DOMAIN
 from custom_components.ksenia.entity import KseniaLaresEntity
@@ -33,9 +33,11 @@ class KseniaLaresConnectivitySensor(BinarySensorEntity, KseniaLaresEntity):
         return self.coordinator.last_update_success
 
     @property
-    def extra_state_attributes(self) -> dict[str, str | None]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional state attributes."""
-        return {
+        base_attributes = {
             "update_interval": str(self.coordinator.update_interval),
             "integration": DOMAIN,
         }
+        alarm_info = self.coordinator.data.alarminfo
+        return base_attributes | alarm_info

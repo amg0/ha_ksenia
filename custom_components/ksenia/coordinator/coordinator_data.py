@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from custom_components.ksenia.api.client import KseniaLaresZone, KseniaPartition
+from custom_components.ksenia.api.client import AlarmInfo, KseniaLaresZone, KseniaPartition, get_default_alarm_info
 
 
 @dataclass
@@ -18,6 +18,7 @@ class KseniaLaresCoordinatorData:
 
     zones: list[KseniaLaresZone] = field(default_factory=list)
     partitions: dict[str, KseniaPartition] = field(default_factory=dict)
+    alarminfo: AlarmInfo = field(default_factory=get_default_alarm_info)
 
     @property
     def _partitions(self) -> dict[str, KseniaPartition]:

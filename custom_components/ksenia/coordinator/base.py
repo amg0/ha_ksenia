@@ -186,4 +186,4 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
             #         KseniaLaresZone()
             #     )
 
-        return KseniaLaresCoordinatorData(zones=zones, partitions=self._partitions_data)
+        return KseniaLaresCoordinatorData(zones=zones, partitions=self._partitions_data, alarminfo=client.alarm_info)
