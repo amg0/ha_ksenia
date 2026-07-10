@@ -39,6 +39,8 @@ def get_zones_schema(zone_names: list[str]) -> vol.Schema:
                 options=[
                     BinarySensorDeviceClass.MOTION,
                     BinarySensorDeviceClass.DOOR,
+                    BinarySensorDeviceClass.WINDOW,
+                    BinarySensorDeviceClass.SMOKE,
                 ],
                 mode=selector.SelectSelectorMode.DROPDOWN,
             ),

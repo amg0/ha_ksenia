@@ -394,7 +394,7 @@ class KSeniaV3Card extends LitElement {
             const deviceClass = attr.device_class;
 
             const isConnectivity = deviceClass === 'connectivity';
-            const isZoneBinary = entityId.startsWith('binary_sensor.') && (deviceClass === 'door' || deviceClass === 'motion');
+            const isZoneBinary = entityId.startsWith('binary_sensor.') && (deviceClass === 'door' || deviceClass === 'motion' || deviceClass === 'window' || deviceClass === 'smoke');
             const isPartition = entityId.startsWith('binary_sensor.') && deviceClass === 'lock';
             const isButton = entityId.startsWith('button.');
 
@@ -428,7 +428,7 @@ class KSeniaV3Card extends LitElement {
       if (attr.device_class === 'connectivity') {
         connectionEntity = stateObj;
       } else if (entityId.startsWith('binary_sensor.')) {
-        if (attr.device_class === 'door' || attr.device_class === 'motion') {
+        if (attr.device_class === 'door' || attr.device_class === 'motion' || attr.device_class === 'window' || attr.device_class === 'smoke') {
           zoneSensors.push(stateObj);
         } else if (attr.device_class === 'lock') {
           partitionSensors.push(stateObj);
@@ -447,16 +447,36 @@ class KSeniaV3Card extends LitElement {
     // Enrich and sort Zones
     const zoneItems = zoneSensors.map(sensor => {
       const attr = sensor.attributes;
-      const isDoor = attr.device_class === 'door';
+      const deviceClass = attr.device_class;
       const stateOn = sensor.state === 'on';
       const isBypass = String(attr.bypass || '').toUpperCase() === 'BYPASS';
 
-      let label = isDoor ? (stateOn ? 'Open' : 'Closed') : (stateOn ? 'Motion' : 'No motion');
+      let label;
+      let icon;
+      switch (deviceClass) {
+        case 'door':
+          label = stateOn ? 'Open' : 'Closed';
+          icon = 'mdi:door';
+          break;
+        case 'window':
+          label = stateOn ? 'Open' : 'Closed';
+          icon = 'mdi:window-closed';
+          break;
+        case 'smoke':
+          label = stateOn ? 'Smoke!' : 'Clear';
+          icon = 'mdi:smoke-detector';
+          break;
+        default: // motion
+          label = stateOn ? 'Motion' : 'No motion';
+          icon = 'mdi:motion-sensor';
+          break;
+      }
       if (isBypass) label += ', bypass';
 
-      return { sensor, isDoor, isBypass, label };
+      return { sensor, deviceClass, isBypass, label, icon };
     }).sort((a, b) => {
-      const typeDiff = (b.isDoor - a.isDoor);
+      const classOrder = ['motion', 'door', 'window', 'smoke'];
+      const typeDiff = (classOrder.indexOf(b.deviceClass) - classOrder.indexOf(a.deviceClass));
       if (typeDiff !== 0) return typeDiff;
       return (a.sensor.attributes.friendly_name || '').localeCompare(b.sensor.attributes.friendly_name || '');
     });
@@ -551,8 +571,8 @@ class KSeniaV3Card extends LitElement {
               >
                 <ha-icon
                   class="analog-icon"
-                  icon="${item.isDoor ? 'mdi:door' : 'mdi:motion-sensor'}"
-                  style="color: ${item.sensor.state === 'on' ? (item.isDoor ? '#e6311d' : '#ef9b0a') : 'var(--secondary-text-color)'};"
+                  icon="${item.icon}"
+                  style="color: ${item.sensor.state === 'on' ? (item.deviceClass === 'smoke' ? '#e6311d' : '#ef9b0a') : 'var(--secondary-text-color)'};"
                 ></ha-icon>
                 <div style="flex:1; min-width:0;">
                   <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.sensor.attributes.friendly_name) || item.sensor.entity_id}</div>

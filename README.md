@@ -25,7 +25,7 @@ Uncomment and customize these badges if you want to use them:
 Home Assistant custom integration for KSenia Lares 3.0 16IP, 48IP or 128IP models
 
 - **Easy Setup**: Simple configuration through the UI - no YAML required
-- **Zone Monitoring**: Monitor alarm zone status and chose if it is a motion detection or a contact sensor (door)
+- **Zone Monitoring**: Monitor alarm zone status and choose from Motion, Door, Window, or Smoke sensor types
 - **Connectivity Tracking**: Real-time tracking of API connection status
 - **Reconfigurable**: Change credentials anytime without removing the integration
 - **Options Flow**: Adjust settings like update interval after setup
@@ -33,10 +33,10 @@ Home Assistant custom integration for KSenia Lares 3.0 16IP, 48IP or 128IP model
 
 **This integration will set up the following platforms.**
 
-| Platform        | Description                                                        |
-| --------------- | ------------------------------------------------------------------ |
-| `binary_sensor` | API connectivity, partition armed status, zone motion/door sensors |
-| `button`        | Scenario execution buttons for each configured alarm scenario      |
+| Platform        | Description                                                                          |
+| --------------- | ------------------------------------------------------------------------------------ |
+| `binary_sensor` | API connectivity, partition armed status, zone sensors (motion, door, window, smoke) |
+| `button`        | Scenario execution buttons for each configured alarm scenario                        |
 
 ## 🚀 Quick Start
 
@@ -116,13 +116,15 @@ In a second dialog, you will be asked to enter:
 In a third dialog, you will be presented with all the alarm zones detected and you will be asked to specify the type for each zone:
 
 1. Motion detector
-2. Contact sensor (door, window, etc.)
+2. Door contact sensor
+3. Window contact sensor
+4. Smoke detector
 
 ### Step 4: Start Using!
 
 The integration creates entities for each KSenia component detected on your alarm panel:
 
-- **Binary Sensors**: API connection status, partition status (per partition), zone sensors (motion or door)
+- **Binary Sensors**: API connection status, partition status (per partition), zone sensors (motion, door, window, smoke)
 - **Buttons**: One button per configured alarm scenario
 
 Find all entities in **Settings** → **Devices & Services** → **Ksenia Lares** → click on the device.
@@ -150,9 +152,9 @@ You can change these anytime by clicking **Configure**:
 
 You can change these anytime by clicking **Configure**:
 
-| Name                 | Default | Description                                                          |
-| -------------------- | ------- | -------------------------------------------------------------------- |
-| Zone Type (per zone) | MOTION  | Choose MOTION detector or DOOR contact sensor for each detected zone |
+| Name                 | Default | Description                                                              |
+| -------------------- | ------- | ------------------------------------------------------------------------ |
+| Zone Type (per zone) | MOTION  | Choose from MOTION, DOOR, WINDOW, or SMOKE sensor for each detected zone |
 
 ## Available Entities
 
@@ -169,9 +171,17 @@ Shows whether the connection to the KSenia panel is active.
 
 **Attributes:**
 
-| Attribute         | Type  | Description                        |
-| ----------------- | ----- | ---------------------------------- |
-| `update_interval` | `str` | Current update interval in seconds |
+| Attribute         | Type  | Description                         |
+| ----------------- | ----- | ----------------------------------- |
+| `update_interval` | `str` | Current update interval in seconds  |
+| `integration`     | `str` | Integration domain (`ksenia`)       |
+| `host`            | `str` | KSenia panel IP address or hostname |
+| `name`            | `str` | KSenia panel name                   |
+| `model`           | `str` | KSenia panel model                  |
+| `info`            | `str` | Additional panel information        |
+| `version`         | `str` | Firmware version                    |
+| `revision`        | `str` | Firmware revision                   |
+| `build`           | `str` | Firmware build number               |
 
 #### Partition Status
 
@@ -190,7 +200,7 @@ Reports the status of each alarm partition on your KSenia panel. One entity is c
 
 #### Zone Sensors
 
-Reports the status of each alarm zone. Zones are dynamically detected from your KSenia hardware and can be configured as either **Motion** or **Door/Contact** type during setup (third config flow phase).
+Reports the status of each alarm zone. Zones are dynamically detected from your KSenia hardware and can be configured as **Motion**, **Door**, **Window**, or **Smoke** type during setup (third config flow phase).
 
 **Motion sensor:**
 
@@ -199,12 +209,19 @@ Reports the status of each alarm zone. Zones are dynamically detected from your 
 | `on`  | Motion detected (zone status is not NORMAL) |
 | `off` | No motion (zone status is NORMAL)           |
 
-**Door/Contact sensor:**
+**Door/Window sensor:**
 
 | State | Meaning                             |
 | ----- | ----------------------------------- |
 | `on`  | Contact opened (door/window open)   |
 | `off` | Contact closed (door/window closed) |
+
+**Smoke sensor:**
+
+| State | Meaning                          |
+| ----- | -------------------------------- |
+| `on`  | Smoke detected                   |
+| `off` | No smoke (zone status is NORMAL) |
 
 Zone entities are created dynamically based on your KSenia hardware. Each zone's device class is determined by the selection you made during setup.
 
@@ -255,6 +272,27 @@ data:
 
 > [!NOTE]
 > The PIN code must be set in the integration options (Settings → Devices & Services → Ksenia Lares → Configure) for scenarios to execute successfully
+
+### `ksenia.zone_bypass`
+
+Toggle the bypass (exclusion) state of a KSenia alarm zone. If the zone is currently active, it will be bypassed; if already bypassed, it will be un-bypassed.
+
+**Fields:**
+
+| Field       | Required | Type  | Description                                    | Example                 |
+| ----------- | -------- | ----- | ---------------------------------------------- | ----------------------- |
+| `entity_id` | Yes      | `str` | The binary sensor entity representing the zone | `"sensor.kitchen_door"` |
+
+**Example:**
+
+```yaml
+service: ksenia.zone_bypass
+data:
+  entity_id: sensor.kitchen_door
+```
+
+> [!NOTE]
+> The PIN code must be set in the integration options (Settings → Devices & Services → Ksenia Lares → Configure) for bypass operations to execute successfully. The zone binary sensor must have an `index` attribute (all zone entities provide this).
 
 ## Supported Devices
 
