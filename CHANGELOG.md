@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.2](https://github.com/amg0/ha_ksenia/compare/v0.5.1...v0.5.2) (2026-07-10)
+
+
+### Features
+
+* state aware icon in lovelace card ([34567be](https://github.com/amg0/ha_ksenia/commit/34567be394b8a83e94dbd462878d3109e438e500))
+* support new class of device for zones ([f6d5926](https://github.com/amg0/ha_ksenia/commit/f6d5926930acf53e3b34c491d1123a46acadb8da))
+
 ## [0.5.1](https://github.com/amg0/ha_ksenia/compare/v0.5.0...v0.5.1) (2026-07-10)
 
 
