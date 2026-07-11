@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.4](https://github.com/amg0/ha_ksenia/compare/v0.5.3...v0.5.4) (2026-07-11)
+
+
+### Features
+
+* add collection of events and store in a new SensorEntity attribute ([6a29b52](https://github.com/amg0/ha_ksenia/commit/6a29b523dc1867045d2eb5baa98481f49914e5d9))
+* update documentation about the log sensor ([e812bab](https://github.com/amg0/ha_ksenia/commit/e812babad871387af0606bd0dd62638bf91486f0))
+
 ## [0.5.3](https://github.com/amg0/ha_ksenia/compare/v0.5.2...v0.5.3) (2026-07-10)
 
 
