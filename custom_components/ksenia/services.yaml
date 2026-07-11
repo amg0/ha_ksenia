@@ -23,7 +23,7 @@ run_scenario:
 
 zone_bypass:
   name: "Toggle Zone Bypass"
-  description: "Toggles the bypass (exclusion) state of a Ksenia alarm zone. If the zone is active, it will be bypassed, and vice versa."
+  description: "Toggles the bypass (exclusion) state of a Ksenia alarm zone."
   fields:
     entity_id:
       name: Zone Entity

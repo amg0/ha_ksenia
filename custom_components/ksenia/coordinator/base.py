@@ -155,6 +155,7 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
         try:
             statuses = await client.async_get_zone_statuses()
             self._partitions_data = await client.async_get_partition_statuses()
+            logs = await client.async_get_logs()
         except KseniaLaresApiClientAuthenticationError as exception:
             LOGGER.warning("Authentication error during status update - %s", exception)
             raise ConfigEntryAuthFailed(
@@ -186,4 +187,6 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
             #         KseniaLaresZone()
             #     )
 
-        return KseniaLaresCoordinatorData(zones=zones, partitions=self._partitions_data, alarminfo=client.alarm_info)
+        return KseniaLaresCoordinatorData(
+            zones=zones, partitions=self._partitions_data, alarminfo=client.alarm_info, logs=logs
+        )

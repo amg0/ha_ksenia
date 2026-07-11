@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from datetime import datetime
 from enum import StrEnum
 import socket
 from typing import TypedDict
@@ -138,6 +139,18 @@ class KseniaScenario:
     description: str
     enabled: bool
     no_pin: bool
+
+
+@dataclass
+class KseniaLog:
+    """Represents a single log entry from the Ksenia Lares system."""
+
+    log_type: int
+    log_id: int
+    timestamp: datetime
+    event: str
+    generator: str
+    means: str
 
 
 class KseniaLaresApiClientError(Exception):
@@ -477,6 +490,62 @@ class KseniaLaresApiClient:
 
         """
         return await self.async_get_zone_descriptions()
+
+    async def async_get_logs(self) -> list[KseniaLog]:
+        """
+        Fetch system logs from the Ksenia controller.
+
+        Retrieves the last 60 log entries from the system and parses them
+        into a list of KseniaLog objects.
+
+        Returns:
+            A list of KseniaLog objects representing system events.
+
+        Raises:
+            KseniaLaresApiClientAuthenticationError: If credentials are invalid.
+            KseniaLaresApiClientCommunicationError: If the host is unreachable.
+            KseniaLaresApiClientError: For other API errors.
+
+        """
+        xml_text = await self._api_wrapper(
+            url=f"{self._base_url}/xml/log/log60.xml",
+        )
+        root = ET.fromstring(xml_text)  # noqa: S314
+        logs: list[KseniaLog] = []
+        for log_el in root.findall("log"):
+            log_type_el = log_el.find("type")
+            trace_el = log_el.find("trace")
+
+            if trace_el is None:
+                continue
+
+            log_type = int(log_type_el.text or "0") if log_type_el is not None else 0
+            log_id = int(trace_el.findtext("id", default="0") or "0")
+            time_str = trace_el.findtext("time", default="") or ""
+            date_str = trace_el.findtext("data", default="") or ""
+            event = trace_el.findtext("event", default="") or ""
+            generator = trace_el.findtext("generator", default="") or ""
+            means = trace_el.findtext("means", default="") or ""
+
+            # Parse date (DD/MM/YYYY) and time (HH:MM:SS) into a datetime object
+            try:
+                timestamp = datetime.strptime(f"{date_str} {time_str}", "%d/%m/%Y %H:%M:%S")
+            except ValueError:
+                # If parsing fails, use current datetime as fallback
+                timestamp = datetime.now()
+
+            logs.append(
+                KseniaLog(
+                    log_type=log_type,
+                    log_id=log_id,
+                    timestamp=timestamp,
+                    event=event,
+                    generator=generator,
+                    means=means,
+                )
+            )
+
+        return logs
 
     async def _api_wrapper(self, url: str) -> str:
         """
