@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.5](https://github.com/amg0/ha_ksenia/compare/v0.5.4...v0.5.5) (2026-07-11)
+
+
+### Bug Fixes
+
+* force immediate refresh in the reload_data service action ([90c1e4d](https://github.com/amg0/ha_ksenia/commit/90c1e4d50cbfa3fd14f9f2bc6b153b86a532ebd6))
+
 ## [0.5.4](https://github.com/amg0/ha_ksenia/compare/v0.5.3...v0.5.4) (2026-07-11)
 
 
