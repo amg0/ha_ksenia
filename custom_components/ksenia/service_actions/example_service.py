@@ -33,7 +33,6 @@ async def async_handle_reload_data(
     Returns:
         ServiceResponse: Dictionary with refresh status, timestamp, and data summary
     """
-    LOGGER.info("Reload data service called")
 
     # Access the coordinator and trigger a refresh
     coordinator = entry.runtime_data.coordinator
@@ -68,7 +67,7 @@ async def async_handle_reload_data(
             "last_update_success": coordinator.last_update_success,
         }
 
-        LOGGER.info(
+        LOGGER.debug(
             "Data reload completed successfully in %.2fms with %d records",
             duration_ms,
             record_count,
