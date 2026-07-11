@@ -37,6 +37,7 @@ Home Assistant custom integration for KSenia Lares 3.0 16IP, 48IP or 128IP model
 | --------------- | ------------------------------------------------------------------------------------ |
 | `binary_sensor` | API connectivity, partition armed status, zone sensors (motion, door, window, smoke) |
 | `button`        | Scenario execution buttons for each configured alarm scenario                        |
+| `sensor`        | System event logs tracking all KSenia alarm events                                   |
 
 ## 🚀 Quick Start
 
@@ -126,6 +127,7 @@ The integration creates entities for each KSenia component detected on your alar
 
 - **Binary Sensors**: API connection status, partition status (per partition), zone sensors (motion, door, window, smoke)
 - **Buttons**: One button per configured alarm scenario
+- **Sensors**: System event logs with last 60 KSenia alarm events stored in attributes
 
 Find all entities in **Settings** → **Devices & Services** → **Ksenia Lares** → click on the device.
 
@@ -232,6 +234,35 @@ Zone entities are created dynamically based on your KSenia hardware. Each zone's
 One button is created for each alarm scenario configured on your KSenia panel. Pressing the button or calling the standard button_press action executes the corresponding scenario.
 
 **Requires:** A PIN code must be entered in the integration options for scenarios to execute successfully.
+
+### Generic Sensor for Logs
+
+Reports the events ( 60 last ) from the Ksenia alarm
+
+#### Dashboard Example: Alarm Events Table
+
+You can display your Ksenia alarm events as a formatted table in your Home Assistant dashboard using a Markdown card with Jinja2 templating:
+
+```yaml
+type: markdown
+title: 🔔 Ksenia Alarm Events
+content: >
+  | Time | Event | Triggered By | Via |
+
+  | :--- | :--- | :--- | :--- |
+
+  {% for item in state_attr('sensor.ksenia_lares_ksenia_logs',
+  'entries') | default([]) %}| {{ as_timestamp(item.timestamp) |
+  timestamp_custom('%d/%m %H:%M') }} | **{{ item.event }}** | {{
+  item.generator }} | *{{ item.means }}* |
+
+  {% endfor %}
+grid_options:
+  columns: full
+```
+
+> [!NOTE]
+> Replace `sensor.ksenia_lares_ksenia_logs` with the actual entity ID of your Ksenia logs sensor if it differs. The table displays the last 60 events from your alarm panel.
 
 ## Custom Services
 
