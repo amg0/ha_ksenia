@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/amg0/ha_ksenia/compare/v0.5.2...v0.5.3) (2026-07-10)
+
+
+### Bug Fixes
+
+* DRY - removed duplicate code for device info retrieval in Ksenia integration. ([937bdab](https://github.com/amg0/ha_ksenia/commit/937bdab23dc45ec23c2d9bd484404f565d4a516a))
+
 ## [0.5.2](https://github.com/amg0/ha_ksenia/compare/v0.5.1...v0.5.2) (2026-07-10)
 
 
