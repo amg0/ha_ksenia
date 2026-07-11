@@ -248,13 +248,8 @@ type: markdown
 title: 🔔 Ksenia Alarm Events
 content: >
   | Time | Event | Triggered By | Via |
-
-  | :--- | :--- | :--- | :--- |
-
-  {% for item in state_attr('sensor.ksenia_lares_ksenia_logs',
-  'entries') | default([]) %}
-  | {{ as_timestamp(item.timestamp) | timestamp_custom('%d/%m %H:%M') }} | **{{ item.event }}** | {{ item.generator }} | *{{ item.means }}* |
-  {% endfor %}
+  | :--- | :--- | :--- | :--- |{% for item in state_attr('sensor.alarme_ksenia_lares_ksenia_logs','entries') | default([]) %}
+  | {{ as_timestamp(item.timestamp) | timestamp_custom('%d/%m %H:%M') }} | **{{ item.event }}** | {{ item.generator }} | *{{ item.means }}*| {% endfor %}
 grid_options:
   columns: full
 ```

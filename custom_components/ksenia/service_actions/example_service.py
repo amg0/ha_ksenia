@@ -40,7 +40,8 @@ async def async_handle_reload_data(
     start_time = dt_util.now()
 
     try:
-        await coordinator.async_request_refresh()
+        # async_refresh instead of async_request_refresh to get immediate refresh
+        await coordinator.async_refresh()
     except (UpdateFailed, ConfigEntryAuthFailed, ConfigEntryNotReady) as exception:
         LOGGER.exception("Failed to reload data: %s", exception)
         # Return error response instead of raising
