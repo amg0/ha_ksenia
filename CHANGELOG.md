@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.6](https://github.com/amg0/ha_ksenia/compare/v0.5.5...v0.5.6) (2026-07-13)
+
+
+### Bug Fixes
+
+* reduce Log verbosity ([186b525](https://github.com/amg0/ha_ksenia/commit/186b525f14e78621e48dfae54c8c952bd7cd5b8a))
+
 ## [0.5.5](https://github.com/amg0/ha_ksenia/compare/v0.5.4...v0.5.5) (2026-07-11)
 
 
