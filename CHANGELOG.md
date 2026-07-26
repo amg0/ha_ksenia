@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.7](https://github.com/amg0/ha_ksenia/compare/v0.5.6...v0.5.7) (2026-07-26)
+
+
+### Bug Fixes
+
+* correct logs for loading lovelace card ([5241eb2](https://github.com/amg0/ha_ksenia/commit/5241eb24a8688ee3547f1dab68383e6b5ec81e92))
+
 ## [0.5.6](https://github.com/amg0/ha_ksenia/compare/v0.5.5...v0.5.6) (2026-07-13)
 
 
