@@ -53,6 +53,7 @@ class ZoneStatus(StrEnum):
     UNKNOWN = "UNKNOWN"
     ALARM = "ALARM"
     NORMAL = "NORMAL"
+    LOST = "LOST"
     NOT_USED = "NOT_USED"
 
 
