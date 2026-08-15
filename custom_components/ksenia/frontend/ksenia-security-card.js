@@ -448,32 +448,40 @@ class KSeniaV3Card extends LitElement {
     const zoneItems = zoneSensors.map(sensor => {
       const attr = sensor.attributes;
       const deviceClass = attr.device_class;
+      const zoneStatus = String(attr.zone_status || '').toUpperCase();
       const stateOn = sensor.state === 'on';
       const isBypass = String(attr.bypass || '').toUpperCase() === 'BYPASS';
 
       let label;
       let icon;
-      switch (deviceClass) {
-        case 'door':
-          label = stateOn ? 'Open' : 'Closed';
-          icon = stateOn ? 'mdi:door-open' : 'mdi:door-closed';
-          break;
-        case 'window':
-          label = stateOn ? 'Open' : 'Closed';
-          icon = stateOn ? 'mdi:window-open' : 'mdi:window-closed';
-          break;
-        case 'smoke':
-          label = stateOn ? 'Smoke!' : 'Clear';
-          icon = stateOn ? 'mdi:smoke-detector-alert' : 'mdi:smoke-detector';
-          break;
-        default: // motion
-          label = stateOn ? 'Motion' : 'No motion';
-          icon = stateOn ? 'mdi:motion-sensor' : 'mdi:motion-sensor-off';
-          break;
+      let accentColor = stateOn ? (deviceClass === 'smoke' ? '#e6311d' : '#ef9b0a') : 'var(--secondary-text-color)';
+      if (zoneStatus === 'LOST') {
+        label = 'Lost';
+        icon = 'mdi:signal-off';
+        accentColor = '#f39c12';
+      } else {
+        switch (deviceClass) {
+          case 'door':
+            label = stateOn ? 'Open' : 'Closed';
+            icon = stateOn ? 'mdi:door-open' : 'mdi:door-closed';
+            break;
+          case 'window':
+            label = stateOn ? 'Open' : 'Closed';
+            icon = stateOn ? 'mdi:window-open' : 'mdi:window-closed';
+            break;
+          case 'smoke':
+            label = stateOn ? 'Smoke!' : 'Clear';
+            icon = stateOn ? 'mdi:smoke-detector-alert' : 'mdi:smoke-detector';
+            break;
+          default: // motion
+            label = stateOn ? 'Motion' : 'No motion';
+            icon = stateOn ? 'mdi:motion-sensor' : 'mdi:motion-sensor-off';
+            break;
+        }
       }
       if (isBypass) label += ', bypass';
 
-      return { sensor, deviceClass, isBypass, label, icon };
+      return { sensor, deviceClass, isBypass, label, icon, accentColor };
     }).sort((a, b) => {
       const classOrder = ['motion', 'door', 'window', 'smoke'];
       const typeDiff = (classOrder.indexOf(b.deviceClass) - classOrder.indexOf(a.deviceClass));
@@ -572,7 +580,7 @@ class KSeniaV3Card extends LitElement {
                 <ha-icon
                   class="analog-icon"
                   icon="${item.icon}"
-                  style="color: ${item.sensor.state === 'on' ? (item.deviceClass === 'smoke' ? '#e6311d' : '#ef9b0a') : 'var(--secondary-text-color)'};"
+                  style="color: ${item.accentColor};"
                 ></ha-icon>
                 <div style="flex:1; min-width:0;">
                   <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.sensor.attributes.friendly_name) || item.sensor.entity_id}</div>
