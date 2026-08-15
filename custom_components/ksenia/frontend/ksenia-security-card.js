@@ -448,6 +448,8 @@ class KSeniaV3Card extends LitElement {
     const zoneItems = zoneSensors.map(sensor => {
       const attr = sensor.attributes;
       const deviceClass = attr.device_class;
+      // Some Ksenia zones can report a LOST state instead of a classic open/motion state.
+      // Treat it as a dedicated warning state so the card is explicit about the problem.
       const zoneStatus = String(attr.zone_status || '').toUpperCase();
       const stateOn = sensor.state === 'on';
       const isBypass = String(attr.bypass || '').toUpperCase() === 'BYPASS';
@@ -456,6 +458,7 @@ class KSeniaV3Card extends LitElement {
       let icon;
       let accentColor = stateOn ? (deviceClass === 'smoke' ? '#e6311d' : '#ef9b0a') : 'var(--secondary-text-color)';
       if (zoneStatus === 'LOST') {
+        // LOST is not a normal trigger; it reflects a communication/problem state.
         label = 'Lost';
         icon = 'mdi:signal-off';
         accentColor = '#f39c12';
