@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.8](https://github.com/amg0/ha_ksenia/compare/v0.5.7...v0.5.8) (2026-08-15)
+
+
+### Features
+
+* add the LOST status to the ZoneStatus enum and fix the is_triggered property method definition. ([51a4416](https://github.com/amg0/ha_ksenia/commit/51a44160b3b6f89e3a3bd7dc99cdd8157683c957))
+
+
+### Bug Fixes
+
+* change statis path config import to new location ([974d331](https://github.com/amg0/ha_ksenia/commit/974d33192217e9d9f3c732683e288cb5bb8c4581))
+
 ## [0.5.7](https://github.com/amg0/ha_ksenia/compare/v0.5.6...v0.5.7) (2026-07-26)
 
 
