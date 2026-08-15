@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from homeassistant.components.http import StaticPathConfig
+from homeassistant.components.http.server import StaticPathConfig
 from homeassistant.components.lovelace.resources import ResourceStorageCollection
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME, Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
