@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/amg0/ha_ksenia/compare/v0.5.8...v0.6.0) (2026-08-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* proper support for LOST state of sensors
+
+### Features
+
+* add frontend hint when a sensor is in LOST state ([a0807b1](https://github.com/amg0/ha_ksenia/commit/a0807b161730fce88aff3f4631487f162bd6bc93))
+* proper support for LOST state of sensors ([1664a28](https://github.com/amg0/ha_ksenia/commit/1664a2883b7c54c35bfef1ddcfc826ca1c71b666))
+
 ## [0.5.8](https://github.com/amg0/ha_ksenia/compare/v0.5.7...v0.5.8) (2026-08-15)
 
 
