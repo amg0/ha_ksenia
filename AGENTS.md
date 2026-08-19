@@ -1,5 +1,11 @@
 # AI Agent Instructions
 
+<!-- repo-role:start -->
+
+This repository is an initialized Home Assistant integration, not the upstream blueprint template.
+
+<!-- repo-role:end -->
+
 This document provides guidance for AI coding agents working on this Home Assistant custom integration project.
 
 ## Project Overview
@@ -11,6 +17,28 @@ This is a Home Assistant custom integration that was generated from a blueprint 
 - **Domain:** `ksenia`
 - **Title:** Ksenia Lares
 - **Repository:** amg0/ha_ksenia
+
+## Agent Skills
+
+| Task                                          | Skill                                                                                                      | Instructions                                                                                                                     |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Adding or changing entity platforms           | [.agents/skills/ha-entity-platform/SKILL.md](.agents/skills/ha-entity-platform/SKILL.md)                   | [.github/instructions/blueprint.entities.instructions.md](.github/instructions/blueprint.entities.instructions.md)               |
+| Adding or changing service actions            | [.agents/skills/ha-service-action/SKILL.md](.agents/skills/ha-service-action/SKILL.md)                     | [.github/instructions/blueprint.service_actions.instructions.md](.github/instructions/blueprint.service_actions.instructions.md) |
+| Config flow, options, reauth, or discovery    | [.agents/skills/ha-config-flow/SKILL.md](.agents/skills/ha-config-flow/SKILL.md)                           | [.github/instructions/blueprint.config_flow.instructions.md](.github/instructions/blueprint.config_flow.instructions.md)         |
+| Debugging coordinator or runtime failures     | [.agents/skills/ha-coordinator-debug/SKILL.md](.agents/skills/ha-coordinator-debug/SKILL.md)               | [.github/instructions/blueprint.coordinator.instructions.md](.github/instructions/blueprint.coordinator.instructions.md)         |
+| Updating translations or icons                | [.agents/skills/ha-translations/SKILL.md](.agents/skills/ha-translations/SKILL.md)                         | [.github/instructions/blueprint.translations.instructions.md](.github/instructions/blueprint.translations.instructions.md)       |
+| Writing or fixing tests                       | [.agents/skills/ha-testing/SKILL.md](.agents/skills/ha-testing/SKILL.md)                                   | [.github/instructions/blueprint.tests.instructions.md](.github/instructions/blueprint.tests.instructions.md)                     |
+| Auditing integration quality                  | [.agents/skills/ha-quality-review/SKILL.md](.agents/skills/ha-quality-review/SKILL.md)                     | —                                                                                                                                |
+| Verifying current Home Assistant APIs         | [.agents/skills/ha-modern-apis/SKILL.md](.agents/skills/ha-modern-apis/SKILL.md)                           | —                                                                                                                                |
+| Handling breaking changes                     | [.agents/skills/ha-breaking-changes/SKILL.md](.agents/skills/ha-breaking-changes/SKILL.md)                 | —                                                                                                                                |
+| Clarifying requirements before coding         | [.agents/skills/ha-grill/SKILL.md](.agents/skills/ha-grill/SKILL.md)                                       | —                                                                                                                                |
+| Planning large changes or decisions           | [.agents/skills/ha-planning/SKILL.md](.agents/skills/ha-planning/SKILL.md)                                 | —                                                                                                                                |
+| Cutting releases or writing release notes     | [.agents/skills/ha-release/SKILL.md](.agents/skills/ha-release/SKILL.md)                                   | —                                                                                                                                |
+| Triaging the GitHub issue backlog             | [.agents/skills/ha-issue-triage/SKILL.md](.agents/skills/ha-issue-triage/SKILL.md)                         | —                                                                                                                                |
+| Maintaining blueprint tooling                 | [.agents/skills/blueprint-tooling/SKILL.md](.agents/skills/blueprint-tooling/SKILL.md)                     | —                                                                                                                                |
+| Scaffolding an integration from the blueprint | [.agents/skills/blueprint-scaffold/SKILL.md](.agents/skills/blueprint-scaffold/SKILL.md)                   | —                                                                                                                                |
+| Importing an existing integration             | [.agents/skills/blueprint-import/SKILL.md](.agents/skills/blueprint-import/SKILL.md)                       | —                                                                                                                                |
+| Maintaining the shipped blueprint skills      | [.agents/skills/blueprint-skill-maintenance/SKILL.md](.agents/skills/blueprint-skill-maintenance/SKILL.md) | —                                                                                                                                |
 
 **Key directories:**
 
