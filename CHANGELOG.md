@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.1](https://github.com/amg0/ha_ksenia/compare/v0.6.0...v0.6.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* add blueprint documentation files ([abc9942](https://github.com/amg0/ha_ksenia/commit/abc99425d6ba8aef911dc1acad63985d7d697a93))
+* template sync issue and disable architecture check for now ([5f0e7dd](https://github.com/amg0/ha_ksenia/commit/5f0e7dd9a898f99da359a51dc838c2784433c98a))
+* udpate template-sync.yml to use the correct workflow name and remove unnecessary steps ([6d85e8a](https://github.com/amg0/ha_ksenia/commit/6d85e8a296d6dba875beaabbeec19a1698489223))
+
 ## [0.6.0](https://github.com/amg0/ha_ksenia/compare/v0.5.8...v0.6.0) (2026-08-15)
 
 
