@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.2](https://github.com/amg0/ha_ksenia/compare/v0.6.1...v0.6.2) (2026-09-13)
+
+
+### Features
+
+* add translation for zone_init form ([f7eb062](https://github.com/amg0/ha_ksenia/commit/f7eb06234d528d4baf2d32fa0162f40a8f863dd6))
+* remove out unnamed zones to avoid key collisions and exception ([6633a9f](https://github.com/amg0/ha_ksenia/commit/6633a9fa141d4b062476e9afc32e868b20bade0a))
+
+
+### Bug Fixes
+
+* remove ignore brand in the .github/workflows/validate.yml file to enable brand validation ([fd3a423](https://github.com/amg0/ha_ksenia/commit/fd3a4232d148d9481bc9f07d1a3c63484f3c79db))
+* remove webhook from manifest.json as it is not used ([7b5e28b](https://github.com/amg0/ha_ksenia/commit/7b5e28b676dba3bd29680fb9fd5d0cbe9c03a14a))
+
 ## [0.6.1](https://github.com/amg0/ha_ksenia/compare/v0.6.0...v0.6.1) (2026-08-19)
 
 
