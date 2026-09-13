@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.const import DOMAIN, LOGGER
-from custom_components.ksenia.service_actions.example_service import async_handle_reload_data
+from custom_components.ksenia.service_actions.reload_data import async_handle_reload_data
 from custom_components.ksenia.service_actions.run_scenario import async_handle_run_scenario
 from custom_components.ksenia.service_actions.zone_bypass import async_handle_zone_bypass
 from homeassistant.core import ServiceCall
