@@ -42,6 +42,10 @@
           "pin": "Encrypted PIN code required to execute some scenarios. Leave empty if not needed."
         }
       },
+      "zone_init": {
+        "title": "Zone Type Configuration",
+        "description": "Configure the type of each zone. Default is Motion sensor"
+      },
       "reconfigure": {
         "description": "Update the credentials for this integration. The controller IP address cannot be changed here.",
         "data": {

@@ -36,8 +36,12 @@
         "data": {
           "refresh_period": "Intervalle d'interrogation (secondes)",
           "pin": "Code PIN système (pour l'exécution de scénarios)"
-        },
-        "data_description": {
+      },
+      "zone_init": {
+        "title": "My Zone Configuration",
+        "description": "Configure the type of each zone."
+      },
+      "data_description": {
           "refresh_period": "Fréquence d'interrogation de l'état des zones et partitions (5 à 300 secondes).",
           "pin": "Code PIN crypté requis pour exécuter certains scénarios. Laissez vide si non nécessaire."
         }
