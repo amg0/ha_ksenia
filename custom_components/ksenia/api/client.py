@@ -313,7 +313,12 @@ class KseniaLaresApiClient:
             url=f"{self._base_url}/xml/zones/zonesDescription{self._model}.xml",
         )
         root = ET.fromstring(xml_text)  # noqa: S314
-        return [ZoneDescription(description=zone.text or "") for zone in root.findall("zone")]
+
+        return [
+            ZoneDescription(description=zone.text.strip())
+            for zone in root.findall("zone")
+            if zone.text and zone.text.strip()  # avoid zones with empty or invalid names
+        ]
 
     async def async_get_zone_statuses(self) -> list[ZoneStatusDescription]:
         """

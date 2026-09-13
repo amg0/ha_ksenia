@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from custom_components.ksenia.const import PARALLEL_UPDATES as PARALLEL_UPDATES
+from custom_components.ksenia.const import CONF_ZONE_CONFIGURATIONS, PARALLEL_UPDATES as PARALLEL_UPDATES
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntityDescription
 from homeassistant.const import EntityCategory
 
@@ -34,7 +34,7 @@ async def async_setup_entry(
     plus partition status lock sensors and a single connectivity diagnostic sensor.
     """
     coordinator = entry.runtime_data.coordinator
-    zone_configuration: dict[str, BinarySensorDeviceClass] = entry.data["zone_configurations"]
+    zone_configuration: dict[str, BinarySensorDeviceClass] = entry.data[CONF_ZONE_CONFIGURATIONS]
     # Create one motion sensor per zone (discovered during coordinator _async_setup)
     zone_entities = [
         KseniaLaresZoneMotionSensor(
@@ -50,6 +50,8 @@ async def async_setup_entry(
             zone=zone,
         )
         for zone in coordinator.data.zones
+        if zone.description
+        and str(zone.description).strip()  # Ensure that the zone has a valid description to use as an entity name
     ]
 
     # Create lock binary sensors for each partition
