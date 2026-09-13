@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.3](https://github.com/amg0/ha_ksenia/compare/v0.6.2...v0.6.3) (2026-09-13)
+
+
+### Bug Fixes
+
+* comment out future code for evolution ( repair flow ) ([a63b931](https://github.com/amg0/ha_ksenia/commit/a63b931f74b58d4fd475a5451824be0a2f255f9b))
+* remove unused state_helpers.py ([f2c5c83](https://github.com/amg0/ha_ksenia/commit/f2c5c83931676645a3bed72bccdefdaa34384124))
+* remove unused utils files ([cf2b4e8](https://github.com/amg0/ha_ksenia/commit/cf2b4e87bc5252796047a1479d11656edf775f71))
+* rename example_service.py to reload_data.py for clarity ([a63b931](https://github.com/amg0/ha_ksenia/commit/a63b931f74b58d4fd475a5451824be0a2f255f9b))
+
 ## [0.6.2](https://github.com/amg0/ha_ksenia/compare/v0.6.1...v0.6.2) (2026-09-13)
 
 
