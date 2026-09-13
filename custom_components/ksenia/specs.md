@@ -1,24 +1,4 @@
-# KSENIA Vera Plugin - Configuration & API Reference
-
-## User Configurable Variables
-
-These variables are used to configure the plugin's connection to the Ksenia system.
-
-| Variable | Service ID | Description | Default |
-| :--- | :--- | :--- | :--- |
-| **ip** | _Device Attribute_ | The IP address of the Ksenia controller on the local network. | _None_ |
-| **port** | _Device Attribute_ | The port of the Ksenia controller on the local network. | _None_ |
-| **Credentials** | `urn:upnp-org:serviceId:ksenia1` | Base64 encoded `username:password` for HTTP authentication. | _None_ |
-| **PIN** | `urn:upnp-org:serviceId:ksenia1` | Encrypted system PIN code for executing scenarios. | _None_ |
-| **RefreshPeriod** | `urn:upnp-org:serviceId:ksenia1` | Polling interval (in seconds) for zone/partition status. | `5` |
-
-INSTRUCTIONS:
-
-config flow : the ip and the user and password credential
-option flow : the resfreshperiod and the PIN code which must be a SECRET type of variable
-reconfigure flow: the user and password credential
-
----
+# KSENIA Plugin - High level API Reference
 
 ## API Specification
 
