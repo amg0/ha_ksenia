@@ -1,6 +1,9 @@
 {
   "domain": "ksenia",
   "name": "Ksenia Lares",
+  "categories": [
+    "plugs_switches"
+  ],
   "codeowners": [
     "@amg0"
   ],
