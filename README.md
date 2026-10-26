@@ -31,7 +31,7 @@ Home Assistant custom integration for KSenia Lares 3.0 16IP, 48IP or 128IP model
 - **Options Flow**: Adjust settings like update interval after setup
 - **Service Actions**: Force data refresh via service calls, Trigger the execution of a KSenia Alarm Scenario
 
-**This integration will set up the following platforms.**
+**This integration will set up the following platforms:**
 
 | Platform        | Description                                                                          |
 | --------------- | ------------------------------------------------------------------------------------ |
