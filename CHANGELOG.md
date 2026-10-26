@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.4](https://github.com/amg0/ha_ksenia/compare/v0.6.3...v0.6.4) (2026-10-26)
+
+
+### Bug Fixes
+
+* doc update ([bbebed1](https://github.com/amg0/ha_ksenia/commit/bbebed1ee1a6d97b3b6fd49402c99fbc7f597db0))
+* remove initialize.sh script as it is no longer needed ([3528dab](https://github.com/amg0/ha_ksenia/commit/3528dab2b1987566189bd73a430ab9f2c6b6cf5d))
+
 ## [0.6.3](https://github.com/amg0/ha_ksenia/compare/v0.6.2...v0.6.3) (2026-09-13)
 
 
