@@ -333,7 +333,7 @@ The card shows different area with:
 
 - the status of each partition
 - the available alarm scenario as button which can be pressed
-- the status of each zone with a cross over if the zone is in ByPass mode.
+- the status of each zone with a cross over if the zone is in ByPass mode
 
 ![Integration_Image](docs/customcard.png)
 
