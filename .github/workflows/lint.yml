@@ -85,9 +85,8 @@ jobs:
             echo "only=true" >> "${GITHUB_OUTPUT}"
           fi
 
-      - name: Set up mise
-        if: steps.tested.outputs.done != 'true'
-        uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
+      - name: Install uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
           version: "2026.10.22"
