@@ -14,7 +14,7 @@ Exception hierarchy:
 Coordinator exception mapping:
     ApiClientAuthenticationError → ConfigEntryAuthFailed (triggers reauth)
     ApiClientCommunicationError → UpdateFailed (auto-retry)
-    ApiClientError             → UpdateFailed (auto-retry)
+    ApiClientError             → UpdateFailed (auto-retry).
 """
 
 from .client import (
