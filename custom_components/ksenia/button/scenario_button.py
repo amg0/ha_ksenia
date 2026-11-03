@@ -4,8 +4,6 @@ Run Scenario button for ksenia.
 test
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api import KseniaLaresApiClientError
@@ -36,9 +34,11 @@ class KseniaLaresButton(ButtonEntity, KseniaLaresEntity):
         self,
         coordinator: KseniaLaresDataUpdateCoordinator,
         entity_description: ButtonEntityDescription,
+        scenario_name: str,
     ) -> None:
         """Initialize the button."""
         super().__init__(coordinator, entity_description)
+        self._attr_name = scenario_name
 
     async def async_press(self) -> None:
         """

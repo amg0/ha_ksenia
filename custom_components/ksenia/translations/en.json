@@ -105,6 +105,11 @@
       "api_connectivity": {
         "name": "API Connection"
       }
+    },
+    "button": {
+      "scenario": {
+        "name": "Scenario"
+      }
     }
   }
 }

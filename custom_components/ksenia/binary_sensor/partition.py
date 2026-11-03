@@ -1,7 +1,5 @@
 """Partition binary sensor for ksenia."""
 
-from __future__ import annotations
-
 from custom_components.ksenia.api.client import PartitionStatus
 from custom_components.ksenia.const import ATTRIBUTION, DOMAIN
 from custom_components.ksenia.coordinator import KseniaLaresDataUpdateCoordinator

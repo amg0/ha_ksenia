@@ -1,0 +1,9 @@
+{
+  "entity": {
+    "button": {
+      "scenario": {
+        "default": "mdi:alarm-light-outline"
+      }
+    }
+  }
+}

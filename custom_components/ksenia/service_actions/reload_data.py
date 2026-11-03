@@ -1,7 +1,5 @@
 """Example service action handlers for ksenia."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.const import LOGGER

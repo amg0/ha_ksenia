@@ -5,12 +5,11 @@ Provides:
 - One API connectivity binary sensor (diagnostic)
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.const import CONF_ZONE_CONFIGURATIONS, PARALLEL_UPDATES as PARALLEL_UPDATES
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntityDescription
+from homeassistant.components.binary_sensor import BinarySensorEntityDescription
+from homeassistant.components.binary_sensor.const import BinarySensorDeviceClass
 from homeassistant.const import EntityCategory
 
 from .connectivity import KseniaLaresConnectivitySensor
@@ -41,10 +40,7 @@ async def async_setup_entry(
             coordinator=coordinator,
             entity_description=BinarySensorEntityDescription(
                 key=f"{zone.description}",
-                # translation_key="api_connectivity",
                 device_class=zone_configuration.get(zone.description, BinarySensorDeviceClass.MOTION),
-                # entity_category=EntityCategory.DIAGNOSTIC,
-                # name=zone.description,
                 has_entity_name=True,
             ),
             zone=zone,
@@ -79,7 +75,6 @@ async def async_setup_entry(
                 translation_key="api_connectivity",
                 device_class=BinarySensorDeviceClass.CONNECTIVITY,
                 entity_category=EntityCategory.DIAGNOSTIC,
-                icon="mdi:api",
                 has_entity_name=True,
             ),
         )

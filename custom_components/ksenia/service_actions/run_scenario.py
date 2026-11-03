@@ -1,7 +1,5 @@
 """Run scenario service action handler for ksenia."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api.client import KseniaLaresApiClient

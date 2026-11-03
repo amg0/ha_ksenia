@@ -5,8 +5,6 @@ Defines the structure of the data returned by the coordinator's
 _async_update_data() method.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 
 from custom_components.ksenia.api.client import (

@@ -5,8 +5,6 @@ Validation functions for user credentials and authentication against
 the Ksenia Lares alarm panel.
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api import KseniaLaresApiClient

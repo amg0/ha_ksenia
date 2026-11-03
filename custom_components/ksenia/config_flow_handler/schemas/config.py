@@ -7,19 +7,17 @@ Schemas for the main configuration flow steps:
 - Reauthentication (credentials only)
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from typing import Any
 
-import voluptuous as vol
+import probatio
 
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.components.binary_sensor.const import BinarySensorDeviceClass
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from homeassistant.helpers import selector
 
 
-def get_zones_schema(zone_names: list[str]) -> vol.Schema:
+def get_zones_schema(zone_names: list[str]) -> probatio.Schema:
     """
     Get schema for the zones configuration step.
 
@@ -46,10 +44,10 @@ def get_zones_schema(zone_names: list[str]) -> vol.Schema:
             ),
         )
 
-    return vol.Schema(schema_dict)
+    return probatio.Schema(schema_dict)
 
 
-def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
+def get_user_schema(defaults: Mapping[str, Any] | None = None) -> probatio.Schema:
     """
     Get schema for user step (initial setup).
 
@@ -63,20 +61,20 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
 
     """
     defaults = defaults or {}
-    return vol.Schema(
+    return probatio.Schema(
         {
-            vol.Required(
+            probatio.Required(
                 CONF_HOST,
-                default=defaults.get(CONF_HOST, vol.UNDEFINED),
+                default=defaults.get(CONF_HOST, probatio.UNDEFINED),
             ): selector.TextSelector(
                 selector.TextSelectorConfig(
                     type=selector.TextSelectorType.TEXT,
                 ),
             ),
-            vol.Required(
+            probatio.Required(
                 CONF_PORT,
                 default=defaults.get(CONF_PORT, 80),
-            ): vol.All(
+            ): probatio.All(
                 selector.NumberSelector(
                     selector.NumberSelectorConfig(
                         min=1,
@@ -84,17 +82,17 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
                         mode=selector.NumberSelectorMode.BOX,
                     )
                 ),
-                vol.Coerce(int),
+                probatio.Coerce(int),
             ),
-            vol.Required(
+            probatio.Required(
                 CONF_USERNAME,
-                default=defaults.get(CONF_USERNAME, vol.UNDEFINED),
+                default=defaults.get(CONF_USERNAME, probatio.UNDEFINED),
             ): selector.TextSelector(
                 selector.TextSelectorConfig(
                     type=selector.TextSelectorType.TEXT,
                 ),
             ),
-            vol.Required(CONF_PASSWORD): selector.TextSelector(
+            probatio.Required(CONF_PASSWORD): selector.TextSelector(
                 selector.TextSelectorConfig(
                     type=selector.TextSelectorType.PASSWORD,
                 ),
@@ -103,7 +101,7 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     )
 
 
-def get_reconfigure_schema(username: str) -> vol.Schema:
+def get_reconfigure_schema(username: str) -> probatio.Schema:
     """
     Get schema for reconfigure step.
 
@@ -116,9 +114,9 @@ def get_reconfigure_schema(username: str) -> vol.Schema:
         Voluptuous schema for reconfiguration.
 
     """
-    return vol.Schema(
+    return probatio.Schema(
         {
-            vol.Required(
+            probatio.Required(
                 CONF_USERNAME,
                 default=username,
             ): selector.TextSelector(
@@ -126,7 +124,7 @@ def get_reconfigure_schema(username: str) -> vol.Schema:
                     type=selector.TextSelectorType.TEXT,
                 ),
             ),
-            vol.Required(
+            probatio.Required(
                 CONF_PASSWORD,
             ): selector.TextSelector(
                 selector.TextSelectorConfig(
@@ -137,7 +135,7 @@ def get_reconfigure_schema(username: str) -> vol.Schema:
     )
 
 
-def get_reauth_schema(username: str) -> vol.Schema:
+def get_reauth_schema(username: str) -> probatio.Schema:
     """
     Get schema for reauthentication step.
 
@@ -148,9 +146,9 @@ def get_reauth_schema(username: str) -> vol.Schema:
         Voluptuous schema for reauthentication.
 
     """
-    return vol.Schema(
+    return probatio.Schema(
         {
-            vol.Required(
+            probatio.Required(
                 CONF_USERNAME,
                 default=username,
             ): selector.TextSelector(
@@ -158,7 +156,7 @@ def get_reauth_schema(username: str) -> vol.Schema:
                     type=selector.TextSelectorType.TEXT,
                 ),
             ),
-            vol.Required(
+            probatio.Required(
                 CONF_PASSWORD,
             ): selector.TextSelector(
                 selector.TextSelectorConfig(

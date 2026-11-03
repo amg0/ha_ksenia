@@ -4,8 +4,6 @@ Provides:
 - Event logs sensor that tracks Ksenia alarm system events
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.const import PARALLEL_UPDATES as PARALLEL_UPDATES

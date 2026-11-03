@@ -4,8 +4,6 @@ Each alarm zone is exposed as a motion binary sensor.
 Motion is detected when the zone status is anything other than NORMAL.
 """
 
-from __future__ import annotations
-
 from custom_components.ksenia.const import ATTRIBUTION, DOMAIN
 from custom_components.ksenia.coordinator import KseniaLaresDataUpdateCoordinator, KseniaLaresZone
 from custom_components.ksenia.entity.base import KseniaLaresEntity

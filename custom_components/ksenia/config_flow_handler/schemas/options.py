@@ -7,18 +7,16 @@ after initial configuration:
 - pin: Encrypted system PIN (secret)
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from typing import Any
 
-import voluptuous as vol
+import probatio
 
 from custom_components.ksenia.const import CONF_PIN, CONF_REFRESH_PERIOD, DEFAULT_REFRESH_PERIOD
 from homeassistant.helpers import selector
 
 
-def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
+def get_options_schema(defaults: Mapping[str, Any] | None = None) -> probatio.Schema:
     """
     Get schema for options flow.
 
@@ -30,9 +28,9 @@ def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
 
     """
     defaults = defaults or {}
-    return vol.Schema(
+    return probatio.Schema(
         {
-            vol.Optional(
+            probatio.Optional(
                 CONF_REFRESH_PERIOD,
                 default=defaults.get(CONF_REFRESH_PERIOD, DEFAULT_REFRESH_PERIOD),
             ): selector.NumberSelector(
@@ -44,7 +42,7 @@ def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
                     mode=selector.NumberSelectorMode.BOX,
                 ),
             ),
-            vol.Optional(
+            probatio.Optional(
                 CONF_PIN,
                 default=defaults.get(CONF_PIN, ""),
             ): selector.TextSelector(

@@ -4,12 +4,11 @@ Button platform for ksenia.
 to run scenario
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.const import PARALLEL_UPDATES as PARALLEL_UPDATES
-from homeassistant.components.button import ButtonDeviceClass, ButtonEntityDescription
+from homeassistant.components.button import ButtonEntityDescription
+from homeassistant.components.button.const import ButtonDeviceClass
 
 from .scenario_button import KseniaLaresButton
 
@@ -35,13 +34,11 @@ async def async_setup_entry(
             coordinator=entry.runtime_data.coordinator,
             entity_description=ButtonEntityDescription(
                 key=f"{scenario.id}",
-                name=f"{scenario.name}",
-                # translation_key="reset_filter",
-                icon="mdi:alarm-light-outline",
+                translation_key="scenario",
                 device_class=ButtonDeviceClass.RESTART,
-                # entity_category=EntityCategory.CONFIG,
                 has_entity_name=True,
             ),
+            scenario_name=scenario.name,
         )
         for scenario in coordinator.scenarios
     )

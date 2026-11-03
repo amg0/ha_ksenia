@@ -10,8 +10,6 @@ For more information:
 https://developers.home-assistant.io/docs/config_entries_config_flow_handler
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
 
 from custom_components.ksenia.api.client import ZoneDescription
@@ -25,7 +23,7 @@ from custom_components.ksenia.config_flow_handler.schemas.options import get_opt
 from custom_components.ksenia.config_flow_handler.validators import validate_credentials
 from custom_components.ksenia.const import CONF_ZONE_CONFIGURATIONS, DOMAIN, LOGGER
 from homeassistant import config_entries
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.components.binary_sensor.const import BinarySensorDeviceClass
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT, CONF_USERNAME
 from homeassistant.loader import async_get_loaded_integration
 

@@ -4,8 +4,6 @@ Reports whether the last coordinator update successfully reached the
 Ksenia Lares alarm panel.
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
 
 from custom_components.ksenia.const import DOMAIN
