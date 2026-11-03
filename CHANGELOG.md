@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.5](https://github.com/amg0/ha_ksenia/compare/v0.6.4...v0.6.5) (2026-11-03)
+
+
+### Features
+
+* Port Ksenia integration to origin/main ([d183fbc](https://github.com/amg0/ha_ksenia/commit/d183fbc8cc97771796171e7a43dd3b77b51282f6))
+
 ## [0.6.4](https://github.com/amg0/ha_ksenia/compare/v0.6.3...v0.6.4) (2026-10-26)
 
 
