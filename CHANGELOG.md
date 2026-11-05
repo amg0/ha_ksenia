@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.6](https://github.com/amg0/ha_ksenia/compare/v0.6.5...v0.6.6) (2026-11-05)
+
+
+### Bug Fixes
+
+* cosmetic test ([d150d2f](https://github.com/amg0/ha_ksenia/commit/d150d2fdb72c9f1597c8f500cfc799f0cf9a23ed))
+
 ## [0.6.5](https://github.com/amg0/ha_ksenia/compare/v0.6.4...v0.6.5) (2026-11-03)
 
 
