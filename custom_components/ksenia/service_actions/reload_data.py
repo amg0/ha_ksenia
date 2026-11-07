@@ -54,7 +54,7 @@ async def async_handle_reload_data(
 
         # Count records in coordinator data
         data_size = len(str(coordinator.data)) if coordinator.data else 0
-        record_count = len(coordinator.data) if isinstance(coordinator.data, dict) else 0
+        record_count = len(coordinator.data.zones) if coordinator.data else 0
 
         response_data: ServiceResponse = {
             "status": "success",

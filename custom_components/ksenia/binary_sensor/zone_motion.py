@@ -37,24 +37,10 @@ class KseniaLaresZoneMotionSensor(BinarySensorEntity, KseniaLaresEntity):
 
         """
         super().__init__(coordinator, entity_description)
-        # self._coordinator = coordinator
         self._zone_index = zone.index
-        # Unique ID: entry_id + zone index so renaming zones doesn't break entities
-        # self._attr_unique_id = f"{coordinator.config_entry.entry_id}_zone_{zone.index}"
         # Use the zone description as the entity name
         self._attr_name = zone.description
         self._attr_device_class = entity_description.device_class
-        # self._attr_device_info = DeviceInfo(
-        #     identifiers={
-        #         (
-        #             coordinator.config_entry.domain,
-        #             coordinator.config_entry.entry_id,
-        #         ),
-        #     },
-        #     name=coordinator.config_entry.title,
-        #     manufacturer="Ksenia",
-        #     model="Lares",
-        # )
 
     @property
     def _zone(self) -> KseniaLaresZone | None:
@@ -62,14 +48,9 @@ class KseniaLaresZoneMotionSensor(BinarySensorEntity, KseniaLaresEntity):
         if self.coordinator.data is None:
             return None
         zones = self.coordinator.data.zones
-        if self._zone_index < len(zones):
+        if self._zone_index < len(zones) and zones[self._zone_index].index == self._zone_index:
             return zones[self._zone_index]
-        return None
-
-    @property
-    def available(self) -> bool:
-        """Return True if coordinator last update succeeded."""
-        return self.coordinator.last_update_success
+        return next((z for z in zones if z.index == self._zone_index), None)
 
     @property
     def is_on(self) -> bool:
@@ -91,7 +72,3 @@ class KseniaLaresZoneMotionSensor(BinarySensorEntity, KseniaLaresEntity):
             "bypass": str(zone.statusdescription.bypass),
             "integration": DOMAIN,
         }
-
-    async def async_added_to_hass(self) -> None:
-        """Register coordinator listener when added to HA."""
-        self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))

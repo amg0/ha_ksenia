@@ -58,24 +58,22 @@ async def async_handle_run_scenario(
         raise HomeAssistantError(f"Config entry {config_entry_id} not found")
 
     client: KseniaLaresApiClient = entry.runtime_data.client
+    coordinator = entry.runtime_data.coordinator
 
-    # Fetch scenarios to find the matching name
-    try:
-        scenarios = await client.async_get_scenarios()
-    except Exception as exception:
-        raise HomeAssistantError(f"Failed to fetch scenarios from Ksenia controller: {exception}") from exception
+    # Use cached scenarios from coordinator, or fetch if not populated yet
+    scenarios = coordinator.scenarios
+    if not scenarios:
+        try:
+            scenarios = await client.async_get_scenarios()
+        except Exception as exception:
+            raise HomeAssistantError(f"Failed to fetch scenarios from Ksenia controller: {exception}") from exception
 
-    target_scenario = None
-    for scenario in scenarios:
-        if scenario.name == scenario_name:
-            target_scenario = scenario
-            break
-
+    target_scenario = next((s for s in scenarios if s.name == scenario_name), None)
     if not target_scenario:
         raise HomeAssistantError(f"Scenario '{scenario_name}' not found on Ksenia controller")
 
     scenario_id = target_scenario.id
-    nopin = target_scenario.nopin if not None else True
+    nopin = target_scenario.nopin
     pin = entry.options.get(CONF_PIN)
 
     if not nopin and not pin:
@@ -84,12 +82,14 @@ async def async_handle_run_scenario(
     LOGGER.info("Executing scenario '%s' (ID: %s)", scenario_name, scenario_id)
 
     try:
-        await client.async_run_scenario(scenario_id=scenario_id, pin=pin if not nopin else None)
-        # Force immediate data refresh after executing the scenario, so that the state of entities is updated
-        # await entry.runtime_data.coordinator.async_request_refresh()
-        await entry.runtime_data.coordinator.async_refresh()
-
+        xml = await client.async_run_scenario(scenario_id=scenario_id, pin=pin if not nopin else None)
     except Exception as exception:
         raise HomeAssistantError(f"Failed to execute scenario '{scenario_name}': {exception}") from exception
 
+    if "cmdSent" not in xml:
+        LOGGER.warning("Scenario '%s' execution failed. Response: %s", scenario_name, xml)
+        raise HomeAssistantError(f"Scenario '{scenario_name}' was rejected by the Ksenia controller")
+
+    # Force immediate data refresh after executing the scenario, so that the state of entities is updated
+    await coordinator.async_refresh()
     LOGGER.info("Scenario '%s' executed successfully", scenario_name)

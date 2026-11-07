@@ -24,19 +24,18 @@ class KseniaLogSensor(SensorEntity, KseniaLaresEntity):
     ) -> None:
         """Initialize the sensor using a DataUpdateCoordinator."""
         super().__init__(coordinator, entity_description)
-        self._attr_name = "Ksenia Logs"
 
     @property
-    def state(self) -> str:
-        """Return the state of the sensor (latest event or total count)."""
-        if logs := self.coordinator.data.logs:
-            return logs[0].event
+    def native_value(self) -> str:
+        """Return the state of the sensor (latest event)."""
+        if self.coordinator.data and (logs := self.coordinator.data.logs):
+            return logs[0].event[:255]
         return "No logs"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the logs collection as nested data attributes."""
-        if not self.coordinator.data.logs:
+        if not self.coordinator.data or not self.coordinator.data.logs:
             return {}
 
         # Serialize the list of KseniaLog dataclasses into simple dictionaries

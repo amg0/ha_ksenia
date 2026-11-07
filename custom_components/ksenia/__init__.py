@@ -86,7 +86,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
     # 1. Cibler le dossier contenant le JS sur le disque
     frontend_dir = Path(__file__).parent / "frontend"
-    LOGGER.debug(f"async_setup() - frontend dir {frontend_dir}")
+    LOGGER.debug("async_setup() - frontend dir %s", frontend_dir)
 
     if frontend_dir.exists():
         # 2. Enregistrer la route HTTP statique avec la nouvelle API asynchrone

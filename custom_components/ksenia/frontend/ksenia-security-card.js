@@ -1,31 +1,109 @@
 /**
- * KSenia V3 Lovelace Card
- * A synthetic and dense dashboard card for GCE KSenia V3 integrations.
+ * Ksenia Lares Lovelace Card
+ * A compact security dashboard card for the Ksenia Lares Home Assistant integration.
  */
 
-// We can load LitElement from the Home Assistant frontend helper if available,
-// otherwise fall back to a public CDN.
-const LitElement = Object.getPrototypeOf(customElements.get("ha-panel-lovelace") || HTMLElement);
+const LitElement = Object.getPrototypeOf(
+  customElements.get("hui-masonry-view") ||
+    customElements.get("ha-panel-lovelace") ||
+    customElements.get("hui-view") ||
+    HTMLElement
+);
 const { html, css } = LitElement.prototype;
 
-const editorTranslations = {
+const translations = {
   en: {
-    title: "Card Title (Optional)",
-    zone_columns: "Number of columns for zones (default 4)",
-    partition_columns: "Number of columns for partitions (default 4)"
+    editor: {
+      title: "Card Title (Optional)",
+      zone_columns: "Number of columns for zones (default 4)",
+      partition_columns: "Number of columns for partitions (default 4)",
+      button_columns: "Number of columns for buttons (default 4)",
+      confirm_bypass: "Confirm before toggling zone bypass",
+    },
+    status: {
+      online: "Online",
+      offline: "Offline",
+      no_sensor: "No sensor",
+      unavailable: "Unavailable",
+    },
+    sections: {
+      partitions: "Partitions",
+      buttons: "Scenarios",
+      zones: "Zones",
+    },
+    zone: {
+      open: "Open",
+      closed: "Closed",
+      smoke: "Smoke!",
+      clear: "Clear",
+      motion: "Motion",
+      no_motion: "No motion",
+      lost: "Lost",
+      bypass: "bypass",
+      confirm_bypass: "Toggle bypass for zone",
+    },
+    partition: {
+      disarmed: "Disarmed",
+      armed: "Armed",
+      armed_immediate: "Armed Immediate",
+      exit: "Exit",
+      prealarm: "Prealarm",
+      alarm: "Alarm",
+      unknown: "Unknown",
+    },
   },
   fr: {
-    title: "Titre de la carte (Optionnel)",
-    zone_columns: "Nombre de colonnes pour les zones (default 4)",
-    partition_columns: "Nombre de colonnes pour les partitions (default 4)"
-  }
+    editor: {
+      title: "Titre de la carte (Optionnel)",
+      zone_columns: "Nombre de colonnes pour les zones (défaut 4)",
+      partition_columns: "Nombre de colonnes pour les partitions (défaut 4)",
+      button_columns: "Nombre de colonnes pour les scénarios (défaut 4)",
+      confirm_bypass: "Confirmer avant d'exclure/inclure une zone",
+    },
+    status: {
+      online: "En ligne",
+      offline: "Hors ligne",
+      no_sensor: "Aucun capteur",
+      unavailable: "Indisponible",
+    },
+    sections: {
+      partitions: "Partitions",
+      buttons: "Scénarios",
+      zones: "Zones",
+    },
+    zone: {
+      open: "Ouvert",
+      closed: "Fermé",
+      smoke: "Fumée !",
+      clear: "Normal",
+      motion: "Détection",
+      no_motion: "RAS",
+      lost: "Perdu",
+      bypass: "isolée",
+      confirm_bypass: "Basculer l'exclusion pour la zone",
+    },
+    partition: {
+      disarmed: "Désarmé",
+      armed: "Armé",
+      armed_immediate: "Armé immédiat",
+      exit: "Sortie",
+      prealarm: "Pré-alarme",
+      alarm: "Alarme",
+      unknown: "Inconnu",
+    },
+  },
 };
 
-class KSeniaV3Card extends LitElement {
+function getTranslations(hass) {
+  const lang = (hass?.language || "en").split("-")[0].toLowerCase();
+  return translations[lang] || translations.en;
+}
+
+class KseniaLaresCard extends LitElement {
   static get properties() {
     return {
       hass: { type: Object },
-      config: { type: Object }
+      config: { type: Object },
     };
   }
 
@@ -85,7 +163,7 @@ class KSeniaV3Card extends LitElement {
         text-transform: uppercase;
         letter-spacing: 1.5px;
         color: var(--secondary-text-color, #bac2de);
-        margin: 12px 0 8px 0; /* Optimized for space */
+        margin: 12px 0 8px 0;
         font-weight: 600;
       }
       .section-title::after {
@@ -97,82 +175,10 @@ class KSeniaV3Card extends LitElement {
       }
       .grid {
         display: grid;
-        gap: 6px; /* Optimized gap for space */
+        gap: 6px;
         margin-bottom: 12px;
       }
-      /* Relay Styles */
-      .relay-grid {
-        grid-template-columns: repeat(var(--relay-columns, 4), 1fr);
-      }
-      .relay-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 6px;
-        padding: 10px 6px;
-        text-align: center;
-        cursor: pointer;
-        font-size: 0.85em;
-        font-weight: 500;
-        transition: all 0.2s ease-in-out;
-        user-select: none;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .relay-btn:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(255, 255, 255, 0.2);
-      }
-      .relay-btn.active {
-        background: rgba(46, 204, 113, 0.15);
-        border-color: #2ecc71;
-        color: #2ecc71;
-        box-shadow: 0 0 8px rgba(46, 204, 113, 0.15);
-      }
-      /* Input Styles */
-      .input-grid {
-        grid-template-columns: repeat(var(--input-columns, 4), 1fr);
-      }
-      .input-indicator {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.03);
-        padding: 6px;
-        border-radius: 6px;
-        font-size: 0.85em;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-      .led {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: rgba(255, 255, 255, 0.15);
-        flex-shrink: 0;
-        transition: all 0.3s ease;
-      }
-      .led.active {
-        background-color: #f1c40f;
-        box-shadow: 0 0 8px #f1c40f;
-      }
-      /* Analog Styles */
-      .analog-grid {
-        grid-template-columns: repeat(var(--analog-columns, 2), 1fr);
-        gap: 10px;
-      }
-      .analog-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        padding: 10px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .analog-icon {
+      .zone-icon {
         color: var(--paper-item-icon-color, #3498db);
         display: flex;
         align-items: center;
@@ -180,66 +186,7 @@ class KSeniaV3Card extends LitElement {
         background: rgba(52, 152, 219, 0.1);
         padding: 8px;
         border-radius: 50%;
-      }
-      .analog-info {
-        display: flex;
-        flex-direction: column;
-      }
-      .analog-label {
-        font-size: 0.75em;
-        color: var(--secondary-text-color, #bac2de);
-      }
-      .analog-value {
-        font-size: 1.05em;
-        font-weight: 600;
-      }
-      /* Counter Styles */
-      .counter-container {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-      .counter-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        padding: 8px 12px;
-        border-radius: 6px;
-      }
-      .counter-name {
-        font-size: 0.9em;
-      }
-      .counter-value {
-        font-weight: 600;
-        font-size: 0.95em;
-        margin-left: 4px;
-        color: var(--accent-color, #ff007f);
-      }
-      .counter-actions {
-        display: flex;
-        gap: 4px;
-      }
-      .counter-actions mwc-button {
-        --mdc-theme-primary: var(--primary-text-color);
-      }
-      .counter-btn {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        color: var(--primary-text-color);
-        cursor: pointer;
-        padding: 4px 10px;
-        font-size: 0.85em;
-        font-weight: bold;
-        transition: background 0.1s ease;
-      }
-      .counter-btn:hover {
-        background: rgba(255, 255, 255, 0.15);
-      }
-      .counter-btn:active {
-        background: rgba(255, 255, 255, 0.25);
+        flex-shrink: 0;
       }
       /* Partition Styles */
       .partition-grid {
@@ -251,7 +198,7 @@ class KSeniaV3Card extends LitElement {
         gap: 8px;
         background: rgba(0, 0, 0, 0.12);
         border: 1px solid rgba(255, 255, 255, 0.03);
-        padding: 6px; /* Optimized for space */
+        padding: 6px;
         border-radius: 6px;
         font-size: 0.85em;
         overflow: hidden;
@@ -277,31 +224,28 @@ class KSeniaV3Card extends LitElement {
         gap: 8px;
         background: rgba(0, 0, 0, 0.12);
         border: 1px solid rgba(255, 255, 255, 0.03);
-        padding: 6px; /* Optimized for space */
+        padding: 6px;
         border-radius: 6px;
         font-size: 0.85em;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
-
-        /* NEW: Added pointer and transition for interactivity */
         cursor: pointer;
+        user-select: none;
         transition: all 0.2s ease-in-out;
       }
-      /* NEW: Added hover state for zone items */
       .zone-item:hover {
         background: rgba(0, 0, 0, 0.2);
         border-color: rgba(255, 255, 255, 0.15);
       }
-
       .zone-item.bypass {
         border-color: rgba(241, 196, 15, 0.3);
         background: rgba(241, 196, 15, 0.05);
       }
-      .zone-item.bypass .analog-icon {
+      .zone-item.bypass .zone-icon {
         position: relative;
       }
-      .zone-item.bypass .analog-icon::after {
+      .zone-item.bypass .zone-icon::after {
         content: "";
         position: absolute;
         top: 50%;
@@ -322,44 +266,41 @@ class KSeniaV3Card extends LitElement {
         gap: 8px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 6px; /* Optimized for space */
+        padding: 6px;
         border-radius: 6px;
         font-size: 0.85em;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
         cursor: pointer;
+        user-select: none;
         transition: all 0.2s ease-in-out;
       }
       .button-item:hover {
         background: rgba(0, 0, 0, 0.12);
         border-color: rgba(255, 255, 255, 0.15);
       }
+      .button-item:active,
+      .zone-item:active {
+        transform: scale(0.98);
+      }
 
       /* --- Mobile Responsiveness --- */
       @media screen and (max-width: 600px) {
-        /* Reduce main card padding to save space */
         ha-card {
           padding: 10px;
         }
-
-        /* Drop to 2 columns on mobile devices */
         .partition-grid,
         .button-grid,
-        .zone-grid,
-        .relay-grid,
-        .input-grid {
+        .zone-grid {
           grid-template-columns: repeat(2, 1fr) !important;
         }
       }
 
       @media screen and (max-width: 380px) {
-        /* Drop to 1 column on extremely narrow phones */
         .partition-grid,
         .button-grid,
-        .zone-grid,
-        .relay-grid,
-        .input-grid {
+        .zone-grid {
           grid-template-columns: 1fr !important;
         }
       }
@@ -368,39 +309,29 @@ class KSeniaV3Card extends LitElement {
 
   static getStubConfig() {
     return {
-      title: "KSenia V3 Panel",
+      title: "Ksenia Lares Panel",
       zone_columns: 4,
-      partition_columns: 4
+      partition_columns: 4,
+      button_columns: 4,
+      confirm_bypass: false,
     };
   }
 
   shouldUpdate(changedProps) {
-    if (changedProps.has('config')) return true;
+    if (changedProps.has("config")) return true;
 
-    if (changedProps.has('hass')) {
-      const oldHass = changedProps.get('hass');
-      if (!oldHass) return true;
+    if (changedProps.has("hass")) {
+      const oldHass = changedProps.get("hass");
+      if (!oldHass || oldHass.language !== this.hass.language) return true;
 
       for (const entityId in this.hass.states) {
         const stateObj = this.hass.states[entityId];
         const oldStateObj = oldHass.states[entityId];
 
-        // Process only if the state changed
         if (stateObj !== oldStateObj) {
           const attr = stateObj.attributes;
-
-          // Optimization: Check if it's our Ksenia integration
-          if (attr && attr.integration && attr.integration.toLowerCase() === 'ksenia') {
-            const deviceClass = attr.device_class;
-
-            const isConnectivity = deviceClass === 'connectivity';
-            const isZoneBinary = entityId.startsWith('binary_sensor.') && (deviceClass === 'door' || deviceClass === 'motion' || deviceClass === 'window' || deviceClass === 'smoke');
-            const isPartition = entityId.startsWith('binary_sensor.') && deviceClass === 'lock';
-            const isButton = entityId.startsWith('button.');
-
-            if (isConnectivity || isZoneBinary || isPartition || isButton) {
-              return true; // Fast exit, trigger render
-            }
+          if (attr && attr.integration && attr.integration.toLowerCase() === "ksenia") {
+            return true;
           }
         }
       }
@@ -412,189 +343,257 @@ class KSeniaV3Card extends LitElement {
   render() {
     if (!this.hass || !this.config) return html``;
 
+    const t = getTranslations(this.hass);
     let connectionEntity = null;
     const zoneSensors = [];
     const partitionSensors = [];
     const buttonEntities = [];
 
-    // Optimization: Single-pass iteration to categorize all Ksenia entities
     for (const entityId in this.hass.states) {
       const stateObj = this.hass.states[entityId];
       const attr = stateObj.attributes;
 
-      // Restrict entirely to integration: Ksenia
-      if (!attr || !attr.integration || attr.integration.toLowerCase() !== 'ksenia') continue;
+      if (!attr || !attr.integration || attr.integration.toLowerCase() !== "ksenia") continue;
 
-      if (attr.device_class === 'connectivity') {
+      if (attr.device_class === "connectivity") {
         connectionEntity = stateObj;
-      } else if (entityId.startsWith('binary_sensor.')) {
-        if (attr.device_class === 'door' || attr.device_class === 'motion' || attr.device_class === 'window' || attr.device_class === 'smoke') {
+      } else if (entityId.startsWith("binary_sensor.")) {
+        if (
+          attr.device_class === "door" ||
+          attr.device_class === "motion" ||
+          attr.device_class === "window" ||
+          attr.device_class === "smoke"
+        ) {
           zoneSensors.push(stateObj);
-        } else if (attr.device_class === 'lock') {
+        } else if (attr.device_class === "lock") {
           partitionSensors.push(stateObj);
         }
-      } else if (entityId.startsWith('button.')) {
+      } else if (entityId.startsWith("button.")) {
         buttonEntities.push(stateObj);
       }
     }
 
-    const isOnline = connectionEntity ? connectionEntity.state === 'on' : false;
-    const statusText = connectionEntity ? (isOnline ? "Online" : "Offline") : "No sensor";
+    const isOnline = connectionEntity ? connectionEntity.state === "on" : false;
+    const statusText = connectionEntity ? (isOnline ? t.status.online : t.status.offline) : t.status.no_sensor;
 
-    const cardTitle = this.config.title || (connectionEntity?.attributes.name ? connectionEntity.attributes.name : (connectionEntity?.attributes.friendly_name ? connectionEntity.attributes.friendly_name.replace(" API connectivity", "") : "KSenia V3 Panel"));
-    //const cardTitle = this._stripKsenia(rawTitle);
+    const cardTitle =
+      this.config.title ||
+      (connectionEntity?.attributes.name
+        ? connectionEntity.attributes.name
+        : connectionEntity?.attributes.friendly_name
+          ? connectionEntity.attributes.friendly_name.replace(/ API (connectivity|Connection)/i, "")
+          : "Ksenia Lares Panel");
 
     // Enrich and sort Zones
-    const zoneItems = zoneSensors.map(sensor => {
-      const attr = sensor.attributes;
-      const deviceClass = attr.device_class;
-      // Some Ksenia zones can report a LOST state instead of a classic open/motion state.
-      // Treat it as a dedicated warning state so the card is explicit about the problem.
-      const zoneStatus = String(attr.zone_status || '').toUpperCase();
-      const stateOn = sensor.state === 'on';
-      const isBypass = String(attr.bypass || '').toUpperCase() === 'BYPASS';
+    const zoneItems = zoneSensors
+      .map((sensor) => {
+        const attr = sensor.attributes;
+        const deviceClass = attr.device_class;
+        const zoneStatus = String(attr.zone_status || "").toUpperCase();
+        const isUnavailable = sensor.state === "unavailable" || sensor.state === "unknown";
+        const stateOn = sensor.state === "on";
+        const isBypass = String(attr.bypass || "").toUpperCase() === "BYPASS";
 
-      let label;
-      let icon;
-      let accentColor = stateOn ? (deviceClass === 'smoke' ? '#e6311d' : '#ef9b0a') : 'var(--secondary-text-color)';
-      if (zoneStatus === 'LOST') {
-        // LOST is not a normal trigger; it reflects a communication/problem state.
-        label = 'Lost';
-        icon = 'mdi:signal-off';
-        accentColor = '#f39c12';
-      } else {
-        switch (deviceClass) {
-          case 'door':
-            label = stateOn ? 'Open' : 'Closed';
-            icon = stateOn ? 'mdi:door-open' : 'mdi:door-closed';
-            break;
-          case 'window':
-            label = stateOn ? 'Open' : 'Closed';
-            icon = stateOn ? 'mdi:window-open' : 'mdi:window-closed';
-            break;
-          case 'smoke':
-            label = stateOn ? 'Smoke!' : 'Clear';
-            icon = stateOn ? 'mdi:smoke-detector-alert' : 'mdi:smoke-detector';
-            break;
-          default: // motion
-            label = stateOn ? 'Motion' : 'No motion';
-            icon = stateOn ? 'mdi:motion-sensor' : 'mdi:motion-sensor-off';
-            break;
+        let label;
+        let icon;
+        let accentColor = stateOn
+          ? deviceClass === "smoke"
+            ? "#e6311d"
+            : "#ef9b0a"
+          : "var(--secondary-text-color)";
+
+        if (isUnavailable) {
+          label = t.status.unavailable;
+          icon = "mdi:alert-circle-outline";
+          accentColor = "#95a5a6";
+        } else if (zoneStatus === "LOST") {
+          label = t.zone.lost;
+          icon = "mdi:signal-off";
+          accentColor = "#f39c12";
+        } else {
+          switch (deviceClass) {
+            case "door":
+              label = stateOn ? t.zone.open : t.zone.closed;
+              icon = stateOn ? "mdi:door-open" : "mdi:door-closed";
+              break;
+            case "window":
+              label = stateOn ? t.zone.open : t.zone.closed;
+              icon = stateOn ? "mdi:window-open" : "mdi:window-closed";
+              break;
+            case "smoke":
+              label = stateOn ? t.zone.smoke : t.zone.clear;
+              icon = stateOn ? "mdi:smoke-detector-alert" : "mdi:smoke-detector";
+              break;
+            default:
+              label = stateOn ? t.zone.motion : t.zone.no_motion;
+              icon = stateOn ? "mdi:motion-sensor" : "mdi:motion-sensor-off";
+              break;
+          }
         }
-      }
-      if (isBypass) label += ', bypass';
+        if (isBypass) label += `, ${t.zone.bypass}`;
 
-      return { sensor, deviceClass, isBypass, label, icon, accentColor };
-    }).sort((a, b) => {
-      const classOrder = ['motion', 'door', 'window', 'smoke'];
-      const typeDiff = (classOrder.indexOf(b.deviceClass) - classOrder.indexOf(a.deviceClass));
-      if (typeDiff !== 0) return typeDiff;
-      return (a.sensor.attributes.friendly_name || '').localeCompare(b.sensor.attributes.friendly_name || '');
-    });
+        return { sensor, deviceClass, isBypass, label, icon, accentColor };
+      })
+      .sort((a, b) => {
+        const classOrder = ["motion", "door", "window", "smoke"];
+        const typeDiff = classOrder.indexOf(b.deviceClass) - classOrder.indexOf(a.deviceClass);
+        if (typeDiff !== 0) return typeDiff;
+        return (a.sensor.attributes.friendly_name || "").localeCompare(b.sensor.attributes.friendly_name || "");
+      });
 
     // Partition status mapping
     const partitionStatusMap = {
-      'disarmed': { label: 'Disarmed', icon: 'mdi:lock-open', color: '#2ecc71' },
-      'armed': { label: 'Armed', icon: 'mdi:home-lock', color: '#f39c12' },
-      'armed_immediate': { label: 'Armed Immediate', icon: 'mdi:lock', color: '#e74c3c' },
-      'exit': { label: 'Exit', icon: 'mdi:lock-clock', color: '#f1c40f' },
-      'prealarm': { label: 'Prealarm', icon: 'mdi:alert-circle', color: '#e74c3c' },
-      'alarm': { label: 'Alarm', icon: 'mdi:alert-circle', color: '#e74c3c' },
-      'unknown': { label: 'Unknown', icon: 'mdi:help-circle', color: 'var(--secondary-text-color)' },
+      disarmed: { label: t.partition.disarmed, icon: "mdi:lock-open", color: "#2ecc71" },
+      armed: { label: t.partition.armed, icon: "mdi:home-lock", color: "#f39c12" },
+      armed_immediate: { label: t.partition.armed_immediate, icon: "mdi:lock", color: "#e74c3c" },
+      exit: { label: t.partition.exit, icon: "mdi:lock-clock", color: "#f1c40f" },
+      prealarm: { label: t.partition.prealarm, icon: "mdi:alert-circle", color: "#e74c3c" },
+      alarm: { label: t.partition.alarm, icon: "mdi:alert-circle", color: "#e74c3c" },
+      unknown: { label: t.partition.unknown, icon: "mdi:help-circle", color: "var(--secondary-text-color)" },
     };
 
     // Enrich and sort Partitions
-    const partitionItems = partitionSensors.map(sensor => {
-      const statusRaw = sensor.attributes?.partition_status || 'unknown';
-      const statusKey = statusRaw.toLowerCase().replace(/\s+/g, '_');
-      const statusInfo = partitionStatusMap[statusKey] || partitionStatusMap['unknown'];
+    const partitionItems = partitionSensors
+      .map((sensor) => {
+        const statusRaw = sensor.attributes?.partition_status || "unknown";
+        const statusKey = statusRaw.toLowerCase().replace(/\s+/g, "_");
+        const statusInfo = partitionStatusMap[statusKey] || partitionStatusMap.unknown;
 
-      return {
-        sensor,
-        label: statusInfo.label,
-        icon: statusInfo.icon,
-        color: statusInfo.color,
-      };
-    }).sort((a, b) => {
-      return (a.sensor.attributes.friendly_name || '').localeCompare(b.sensor.attributes.friendly_name || '');
-    });
+        return {
+          sensor,
+          label: statusInfo.label,
+          icon: statusInfo.icon,
+          color: statusInfo.color,
+        };
+      })
+      .sort((a, b) => {
+        return (a.sensor.attributes.friendly_name || "").localeCompare(b.sensor.attributes.friendly_name || "");
+      });
 
     // Enrich and sort Buttons
-    const buttonItems = buttonEntities.map(sensor => ({
-      sensor,
-      label: sensor.attributes?.friendly_name || sensor.entity_id,
-    })).sort((a, b) => {
-      return a.label.localeCompare(b.label);
-    });
+    const buttonItems = buttonEntities
+      .map((sensor) => ({
+        sensor,
+        label: sensor.attributes?.friendly_name || sensor.entity_id,
+      }))
+      .sort((a, b) => {
+        return a.label.localeCompare(b.label);
+      });
 
     return html`
       <ha-card>
         <div class="card-header">
           <div class="title">
-            <ha-icon icon="mdi:ip-network"></ha-icon>
+            <ha-icon icon="mdi:shield-home"></ha-icon>
             <span>${cardTitle}</span>
           </div>
-          <div class="status ${isOnline ? 'online' : 'offline'}">
+          <div class="status ${isOnline ? "online" : "offline"}">
             <span class="status-dot"></span>
             <span>${statusText}</span>
           </div>
         </div>
 
-        ${partitionItems && partitionItems.length ? html`
-          <div class="section-title">Partitions</div>
-          <div class="grid partition-grid" style="--partition-columns: ${this.config.partition_columns || 4}">
-            ${partitionItems.map(item => html`
-              <div class="partition-item" title="${item.sensor.entity_id}">
-                <div class="partition-icon" style="background-color: ${item.color}20;">
-                  <ha-icon icon="${item.icon}" style="color: ${item.color}; font-size: 1em;"></ha-icon>
-                </div>
-                <div style="flex:1; min-width:0;">
-                  <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.sensor.attributes.friendly_name) || item.sensor.entity_id}</div>
-                  <div style="font-size:0.8em; color:var(--secondary-text-color);">${item.label}</div>
-                </div>
+        ${partitionItems.length
+          ? html`
+              <div class="section-title">${t.sections.partitions}</div>
+              <div class="grid partition-grid" style="--partition-columns: ${this.config.partition_columns || 4}">
+                ${partitionItems.map(
+                  (item) => html`
+                    <div class="partition-item" title="${item.sensor.entity_id}">
+                      <div class="partition-icon" style="background-color: ${item.color}20;">
+                        <ha-icon icon="${item.icon}" style="color: ${item.color}; font-size: 1em;"></ha-icon>
+                      </div>
+                      <div style="flex:1; min-width:0;">
+                        <div
+                          style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                        >
+                          ${this._stripKsenia(item.sensor.attributes.friendly_name) || item.sensor.entity_id}
+                        </div>
+                        <div style="font-size:0.8em; color:var(--secondary-text-color);">${item.label}</div>
+                      </div>
+                    </div>
+                  `
+                )}
               </div>
-            `)}
-          </div>
-        ` : ''}
+            `
+          : ""}
 
-        ${buttonItems && buttonItems.length ? html`
-          <div class="section-title">Buttons</div>
-          <div class="grid button-grid" style="--button-columns: ${this.config.partition_columns || 4}">
-            ${buttonItems.map(item => html`
-              <div class="button-item" title="${item.sensor.entity_id}" @click=${() => this.hass.callService('button', 'press', { entity_id: item.sensor.entity_id })}>
-                <ha-icon icon="mdi:gesture-tap-button" style="color: var(--accent-color, #3498db); font-size: 1em;"></ha-icon>
-                <div style="flex:1; min-width:0;">
-                  <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.label)}</div>
-                </div>
-              </div>
-            `)}
-          </div>
-        ` : ''}
-
-        ${zoneItems && zoneItems.length ? html`
-          <div class="section-title">Zones</div>
-          <div class="grid zone-grid" style="--zone-columns: ${this.config.zone_columns || 4}">
-            ${zoneItems.map(item => html`
+        ${buttonItems.length
+          ? html`
+              <div class="section-title">${t.sections.buttons}</div>
               <div
-                class="zone-item${item.isBypass ? ' bypass' : ''}"
-                title="${item.sensor.entity_id}"
-                @click=${() => this.hass.callService('ksenia', 'zone_bypass', { entity_id: item.sensor.entity_id })}
+                class="grid button-grid"
+                style="--button-columns: ${this.config.button_columns || this.config.partition_columns || 4}"
               >
-                <ha-icon
-                  class="analog-icon"
-                  icon="${item.icon}"
-                  style="color: ${item.accentColor};"
-                ></ha-icon>
-                <div style="flex:1; min-width:0;">
-                  <div style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${this._stripKsenia(item.sensor.attributes.friendly_name) || item.sensor.entity_id}</div>
-                  <div style="font-size:0.8em; color:var(--secondary-text-color);">${item.label}</div>
-                </div>
+                ${buttonItems.map(
+                  (item) => html`
+                    <div
+                      class="button-item"
+                      title="${item.sensor.entity_id}"
+                      @click=${() => this._handleButtonPress(item.sensor.entity_id)}
+                    >
+                      <ha-icon
+                        icon="mdi:gesture-tap-button"
+                        style="color: var(--accent-color, #3498db); font-size: 1em;"
+                      ></ha-icon>
+                      <div style="flex:1; min-width:0;">
+                        <div
+                          style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                        >
+                          ${this._stripKsenia(item.label)}
+                        </div>
+                      </div>
+                    </div>
+                  `
+                )}
               </div>
-            `)}
-          </div>
-        ` : ''}
+            `
+          : ""}
+
+        ${zoneItems.length
+          ? html`
+              <div class="section-title">${t.sections.zones}</div>
+              <div class="grid zone-grid" style="--zone-columns: ${this.config.zone_columns || 4}">
+                ${zoneItems.map(
+                  (item) => html`
+                    <div
+                      class="zone-item${item.isBypass ? " bypass" : ""}"
+                      title="${item.sensor.entity_id}"
+                      @click=${() => this._handleZoneClick(item.sensor, t)}
+                    >
+                      <ha-icon class="zone-icon" icon="${item.icon}" style="color: ${item.accentColor};"></ha-icon>
+                      <div style="flex:1; min-width:0;">
+                        <div
+                          style="font-size:0.95em; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                        >
+                          ${this._stripKsenia(item.sensor.attributes.friendly_name) || item.sensor.entity_id}
+                        </div>
+                        <div style="font-size:0.8em; color:var(--secondary-text-color);">${item.label}</div>
+                      </div>
+                    </div>
+                  `
+                )}
+              </div>
+            `
+          : ""}
       </ha-card>
     `;
+  }
+
+  _handleButtonPress(entityId) {
+    this._fireHaptic("light");
+    this.hass.callService("button", "press", { entity_id: entityId });
+  }
+
+  _handleZoneClick(sensor, t) {
+    const name = this._stripKsenia(sensor.attributes.friendly_name) || sensor.entity_id;
+    if (this.config.confirm_bypass) {
+      if (!window.confirm(`${t.zone.confirm_bypass} "${name}" ?`)) {
+        return;
+      }
+    }
+    this._fireHaptic("light");
+    this.hass.callService("ksenia", "zone_bypass", { entity_id: sensor.entity_id });
   }
 
   _fireHaptic(type = "light") {
@@ -612,8 +611,8 @@ class KSeniaV3Card extends LitElement {
   }
 
   _stripKsenia(name) {
-    if (!name || typeof name !== 'string') return name;
-    return name.replace(/Ksenia Lares/gi, '').replace(/\s{2,}/g, ' ').trim();
+    if (!name || typeof name !== "string") return name;
+    return name.replace(/Ksenia Lares/gi, "").replace(/\s{2,}/g, " ").trim();
   }
 
   static getConfigElement() {
@@ -622,9 +621,9 @@ class KSeniaV3Card extends LitElement {
 }
 
 /**
- * UI Editor for KSenia V3 Card
+ * UI Editor for Ksenia Lares Card
  */
-class KSeniaV3CardEditor extends LitElement {
+class KseniaLaresCardEditor extends LitElement {
   static get properties() {
     return {
       hass: { type: Object },
@@ -643,8 +642,10 @@ class KSeniaV3CardEditor extends LitElement {
 
     const schema = [
       { name: "title", selector: { text: {} } },
+      { name: "partition_columns", selector: { number: { min: 1, max: 8, step: 1 } } },
+      { name: "button_columns", selector: { number: { min: 1, max: 8, step: 1 } } },
       { name: "zone_columns", selector: { number: { min: 1, max: 8, step: 1 } } },
-      { name: "partition_columns", selector: { number: { min: 1, max: 8, step: 1 } } }
+      { name: "confirm_bypass", selector: { boolean: {} } },
     ];
 
     return html`
@@ -652,17 +653,15 @@ class KSeniaV3CardEditor extends LitElement {
         .hass=${this.hass}
         .data=${this._config}
         .schema=${schema}
-        .computeLabel=${(schema) => this._computeLabel(schema)}
+        .computeLabel=${(s) => this._computeLabel(s)}
         @value-changed=${this._onValueChanged}
       ></ha-form>
     `;
   }
 
   _computeLabel(schema) {
-    const lang = this.hass?.language || 'en';
-    const baseLang = lang.split('-')[0];
-    const dict = editorTranslations[baseLang] || editorTranslations['en'];
-    return dict[schema.name] || schema.name;
+    const t = getTranslations(this.hass);
+    return t.editor[schema.name] || schema.name;
   }
 
   _onValueChanged(ev) {
@@ -679,26 +678,33 @@ class KSeniaV3CardEditor extends LitElement {
   }
 }
 
-customElements.define('ksenia-card', KSeniaV3Card);
-customElements.define("ksenia-card-editor", KSeniaV3CardEditor);
+if (!customElements.get("ksenia-card")) {
+  customElements.define("ksenia-card", KseniaLaresCard);
+}
+if (!customElements.get("ksenia-card-editor")) {
+  customElements.define("ksenia-card-editor", KseniaLaresCardEditor);
+}
 
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: 'ksenia-card',
-  name: 'KSenia V3 Card',
-  description: 'A dense synthetic card displaying Relays, Digital Inputs, Analogs, and Counters for KSenia V3 custom integration.',
-  preview: true,
-  documentationURL: 'https://github.com/amg0/ha_KSeniav3',
+if (!window.customCards.some((card) => card.type === "ksenia-card")) {
+  window.customCards.push({
+    type: "ksenia-card",
+    name: "Ksenia Lares Card",
+    description:
+      "A compact security dashboard card displaying Partitions, Scenarios, and Zones for the Ksenia Lares integration.",
+    preview: true,
+    documentationURL: "https://github.com/amg0/ha_ksenia",
 
-  getEntitySuggestion: (hass, entityId) => {
-    const entityReg = hass.entities[entityId];
+    getEntitySuggestion: (hass, entityId) => {
+      const entityReg = hass.entities?.[entityId];
 
-    if (!entityReg || entityReg.platform !== "ksenia") {
-      return null;
-    }
+      if (!entityReg || entityReg.platform !== "ksenia") {
+        return null;
+      }
 
-    return {
-      config: { type: "custom:ksenia-card" },
-    };
-  },
-});
+      return {
+        config: { type: "custom:ksenia-card" },
+      };
+    },
+  });
+}

@@ -28,7 +28,10 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .coordinator_data import KseniaLaresCoordinatorData, KseniaLaresZone
 
 if TYPE_CHECKING:
+    from logging import Logger
+
     from custom_components.ksenia.data import KseniaLaresConfigEntry
+    from homeassistant.core import HomeAssistant
 
 
 class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordinatorData]):
@@ -50,8 +53,8 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
 
     def __init__(
         self,
-        hass,
-        logger,
+        hass: HomeAssistant,
+        logger: Logger,
         name: str,
         config_entry: KseniaLaresConfigEntry,
         update_interval: timedelta,
@@ -168,22 +171,19 @@ class KseniaLaresDataUpdateCoordinator(DataUpdateCoordinator[KseniaLaresCoordina
             ) from exception
 
         zones: list[KseniaLaresZone] = []
-        for idx, zonedescription in enumerate(self._zone_descriptions):
-            if idx < len(statuses):
-                zone_status = statuses[idx]
+        for zonedescription in self._zone_descriptions:
+            hw_idx = zonedescription.index
+            if hw_idx < len(statuses):
+                zone_status = statuses[hw_idx]
                 zones.append(
                     KseniaLaresZone(
-                        index=idx,
+                        index=hw_idx,
                         description=zonedescription.description,
                         statusdescription=ZoneStatusDescription(
                             status=ZoneStatus(zone_status.status), bypass=ZoneBypass(zone_status.bypass)
                         ),
                     )
                 )
-            # else:
-            #     zones.append(
-            #         KseniaLaresZone()
-            #     )
 
         return KseniaLaresCoordinatorData(
             zones=zones, partitions=self._partitions_data, alarminfo=client.alarm_info, logs=logs

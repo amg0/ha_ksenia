@@ -33,7 +33,7 @@ async def async_setup_entry(
     plus partition status lock sensors and a single connectivity diagnostic sensor.
     """
     coordinator = entry.runtime_data.coordinator
-    zone_configuration: dict[str, BinarySensorDeviceClass] = entry.data[CONF_ZONE_CONFIGURATIONS]
+    zone_configuration: dict[str, BinarySensorDeviceClass] = entry.data.get(CONF_ZONE_CONFIGURATIONS, {})
     # Create one motion sensor per zone (discovered during coordinator _async_setup)
     zone_entities = [
         KseniaLaresZoneMotionSensor(

@@ -196,7 +196,7 @@ class KseniaLaresConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await validate_credentials(
                     self.hass,
                     host=entry.data[CONF_HOST],
-                    port=entry.data["port"],
+                    port=entry.data[CONF_PORT],
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )

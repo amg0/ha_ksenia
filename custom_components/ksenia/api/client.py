@@ -18,6 +18,8 @@ from xml.etree import ElementTree as ET
 
 import aiohttp
 
+from homeassistant.util import dt as dt_util
+
 
 class AlarmInfo(TypedDict):
     """Basic KSenia Lares alarm information."""
@@ -68,11 +70,12 @@ class ZoneDescription:
     """Alarm zone."""
 
     description: str
+    index: int = 0
 
     @property
-    def enabled(self):
+    def enabled(self) -> bool:
         """Return whether the zone is enabled."""
-        return self.description is not None and self.description != ""
+        return bool(self.description and self.description.strip())
 
 
 @dataclass
@@ -90,8 +93,6 @@ class KseniaLaresZone:
     index: int
     description: str
     statusdescription: ZoneStatusDescription
-    # status: ZoneStatus
-    # bypass: ZoneBypass
 
     @property
     def is_triggered(self) -> bool:
@@ -99,9 +100,9 @@ class KseniaLaresZone:
         return self.statusdescription.status != ZoneStatus.NORMAL
 
     @property
-    def enabled(self):
+    def enabled(self) -> bool:
         """Return whether the zone is enabled."""
-        return self.description is not None
+        return bool(self.description and self.description.strip())
 
 
 class PartitionStatus(StrEnum):
@@ -125,19 +126,9 @@ class KseniaPartition:
     status: PartitionStatus
 
     @property
-    def enabled(self):
+    def enabled(self) -> bool:
         """Return whether the partition is enabled."""
-        return self.description is not None
-
-
-@dataclass
-class KseniaScenario:
-    """Alarm scenario."""
-
-    id: int
-    description: str
-    enabled: bool
-    no_pin: bool
+        return bool(self.description and self.description.strip())
 
 
 @dataclass
@@ -278,12 +269,13 @@ class KseniaLaresApiClient:
             url=f"{self._base_url}/xml/info/generalInfo.xml",
         )
         general_info_el = ET.fromstring(response)  # noqa: S314
-        product_name = general_info_el.findtext("productName", default="") or ""
-        # mac = get_mac_address(ip=self._ip)
+        product_name = (general_info_el.findtext("productName", default="") or "").strip()
+        parts = product_name.split()
+        model = parts[-1] if parts else ""
         return AlarmInfo(
             host=self._base_url,
             name=product_name,
-            model=product_name.split()[-1],
+            model=model,
             info=general_info_el.findtext("info1", default="") or "",
             version=general_info_el.findtext("productHighRevision", default="") or "",
             revision=general_info_el.findtext("productLowRevision", default="") or "",
@@ -295,10 +287,10 @@ class KseniaLaresApiClient:
         Fetch zone descriptions from the Ksenia controller.
 
         Called once during coordinator setup to discover zone names.
-        Returns a list of zone name strings in index order.
+        Returns a list of zone descriptions with their hardware indices.
 
         Returns:
-            List of zone description strings.
+            List of ZoneDescription objects.
 
         Raises:
             KseniaLaresApiClientAuthenticationError: If authentication fails.
@@ -313,8 +305,8 @@ class KseniaLaresApiClient:
         root = ET.fromstring(xml_text)  # noqa: S314
 
         return [
-            ZoneDescription(description=zone.text.strip())
-            for zone in root.findall("zone")
+            ZoneDescription(description=zone.text.strip(), index=idx)
+            for idx, zone in enumerate(root.findall("zone"))
             if zone.text and zone.text.strip()  # avoid zones with empty or invalid names
         ]
 
@@ -386,13 +378,12 @@ class KseniaLaresApiClient:
             KseniaLaresApiClientError: For other API errors.
 
         """
-        # 1. Fetch descriptions to get names
+        # 1. Fetch descriptions to get names (preserve positional alignment with status XML)
         desc_xml = await self._api_wrapper(
             url=f"{self._base_url}/xml/partitions/partitionsDescription{self._model}.xml",
         )
         desc_root = ET.fromstring(desc_xml)  # noqa: S314
-        # Assuming partition elements contain the name in their text, similar to zones
-        descriptions = [p.text or "" for p in desc_root.findall("partition") if p.text]
+        descriptions = [(p.text or "").strip() for p in desc_root.findall("partition")]
 
         # 2. Fetch statuses
         stat_xml = await self._api_wrapper(
@@ -403,7 +394,7 @@ class KseniaLaresApiClient:
         # 3. Combine results into a dictionary <name>:<status>
         statuses: dict[str, KseniaPartition] = {}
         for i, partition_el in enumerate(stat_root.findall("partition")):
-            if i < len(descriptions):
+            if i < len(descriptions) and descriptions[i]:
                 name = descriptions[i]
                 statuses[name] = KseniaPartition(
                     id=i, description=name, status=PartitionStatus(partition_el.text or "UNKNOWN")
@@ -531,12 +522,13 @@ class KseniaLaresApiClient:
             generator = trace_el.findtext("generator", default="") or ""
             means = trace_el.findtext("means", default="") or ""
 
-            # Parse date (DD/MM/YYYY) and time (HH:MM:SS) into a datetime object
+            # Parse date (DD/MM/YYYY) and time (HH:MM:SS) into a timezone-aware datetime object
             try:
-                timestamp = datetime.strptime(f"{date_str} {time_str}", "%d/%m/%Y %H:%M:%S")
+                naive_dt = datetime.strptime(f"{date_str} {time_str}", "%d/%m/%Y %H:%M:%S")
+                timestamp = naive_dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
             except ValueError:
                 # If parsing fails, use current datetime as fallback
-                timestamp = datetime.now()
+                timestamp = dt_util.now()
 
             logs.append(
                 KseniaLog(

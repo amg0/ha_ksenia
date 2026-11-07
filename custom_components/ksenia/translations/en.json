@@ -110,6 +110,11 @@
       "scenario": {
         "name": "Scenario"
       }
+    },
+    "sensor": {
+      "logs": {
+        "name": "Ksenia Logs"
+      }
     }
   }
 }

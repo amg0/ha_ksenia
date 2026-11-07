@@ -49,15 +49,12 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
     async def handle_zone_bypass(call: ServiceCall) -> None:
         """Handle the zone_bypass service call."""
-        # Find all config entries for this domain
         entries = hass.config_entries.async_entries(DOMAIN)
         if not entries:
             LOGGER.warning("No config entries found for %s", DOMAIN)
             return
 
-        # for each entry, handle the zone bypass service call
-        for entry in entries:
-            await async_handle_zone_bypass(hass, entry, call)
+        await async_handle_zone_bypass(hass, entries[0], call)
 
     # Register services (only once at component level)
     if not hass.services.has_service(DOMAIN, SERVICE_RELOAD_DATA):

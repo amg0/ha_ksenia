@@ -7,7 +7,7 @@ test
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api import KseniaLaresApiClientError
-from custom_components.ksenia.const import DOMAIN, LOGGER
+from custom_components.ksenia.const import CONF_PIN, DOMAIN, LOGGER
 from custom_components.ksenia.entity import KseniaLaresEntity
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.exceptions import HomeAssistantError
@@ -15,20 +15,9 @@ from homeassistant.exceptions import HomeAssistantError
 if TYPE_CHECKING:
     from custom_components.ksenia.coordinator import KseniaLaresDataUpdateCoordinator
 
-# ENTITY_DESCRIPTIONS = (
-#     ButtonEntityDescription(
-#         key="reset_filter",
-#         translation_key="reset_filter",
-#         icon="mdi:restart",
-#         device_class=ButtonDeviceClass.RESTART,
-#         entity_category=EntityCategory.CONFIG,
-#         has_entity_name=True,
-#     ),
-# )
-
 
 class KseniaLaresButton(ButtonEntity, KseniaLaresEntity):
-    """Reset filter button class."""
+    """Scenario execution button class."""
 
     def __init__(
         self,
@@ -41,31 +30,35 @@ class KseniaLaresButton(ButtonEntity, KseniaLaresEntity):
         self._attr_name = scenario_name
 
     async def async_press(self) -> None:
-        """
-        Handle the button press.
-
-        This simulates resetting the filter timer. In a real integration,
-        this would send an API command to reset the device's filter counter.
-
-        Demo: This also affects the filter_life sensor - watch it jump to 100%!
-        the scenarioid is = int(self.entity_description.key)
-        """
-        scenarioid = int(self.entity_description.key)
+        """Execute the Ksenia scenario when the button is pressed."""
+        scenario_id = int(self.entity_description.key)
         scenario_list = self.coordinator.scenarios
-        scenario = next((s for s in scenario_list if s.id == scenarioid), None)
-        if scenario is not None:
-            try:
-                xml = await self.coordinator.config_entry.runtime_data.client.async_run_scenario(
-                    scenario_id=scenario.id, pin=self.coordinator.config_entry.options.get("pin", None)
-                )
-                if "cmdSent" in xml:
-                    LOGGER.info("Scenario %s executed successfully. Response: %s", scenario.name, xml)
-                    await self.coordinator.async_request_refresh()
-                else:
-                    LOGGER.warning("Scenario %s execution failed. Response: %s", scenario.name, xml)
-            except KseniaLaresApiClientError as exception:
-                msg = f"Failed to call Ksenia API: {exception}"
-                raise HomeAssistantError(msg) from exception
+        scenario = next((s for s in scenario_list if s.id == scenario_id), None)
+        if scenario is None:
+            msg = f"Scenario ID {scenario_id} not found"
+            raise HomeAssistantError(msg)
+
+        pin = None if scenario.nopin else self.coordinator.config_entry.options.get(CONF_PIN)
+        if not scenario.nopin and not pin:
+            msg = f"Scenario '{scenario.name}' requires a PIN, but no PIN is configured in options"
+            raise HomeAssistantError(msg)
+
+        try:
+            xml = await self.coordinator.config_entry.runtime_data.client.async_run_scenario(
+                scenario_id=scenario.id,
+                pin=pin,
+            )
+        except KseniaLaresApiClientError as exception:
+            msg = f"Failed to call Ksenia API: {exception}"
+            raise HomeAssistantError(msg) from exception
+
+        if "cmdSent" in xml:
+            LOGGER.info("Scenario %s executed successfully. Response: %s", scenario.name, xml)
+            await self.coordinator.async_request_refresh()
+        else:
+            LOGGER.warning("Scenario %s execution failed. Response: %s", scenario.name, xml)
+            msg = f"Scenario '{scenario.name}' was rejected by the Ksenia controller"
+            raise HomeAssistantError(msg)
 
     @property
     def extra_state_attributes(self) -> dict[str, str]:

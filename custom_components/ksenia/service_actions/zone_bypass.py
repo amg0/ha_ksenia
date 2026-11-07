@@ -3,9 +3,10 @@
 from typing import TYPE_CHECKING
 
 from custom_components.ksenia.api.client import ZoneBypass
-from custom_components.ksenia.const import CONF_PIN, LOGGER
+from custom_components.ksenia.const import CONF_PIN, DOMAIN, LOGGER
 from custom_components.ksenia.data import KseniaLaresConfigEntry
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers import entity_registry as er
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant, ServiceCall
@@ -18,12 +19,23 @@ async def async_handle_zone_bypass(
 ) -> None:
     """Handle the zone_bypass service action."""
 
-    entity_id = call.data.get("entity_id")
+    entity_id_raw = call.data.get("entity_id")
 
     # 1. Validation of ID presence
-    if not entity_id:
+    if not entity_id_raw:
         LOGGER.error("zone_bypass action called without entity_id")
         raise ServiceValidationError("The 'entity_id' argument is required.")
+
+    entity_id = entity_id_raw[0] if isinstance(entity_id_raw, list) else entity_id_raw
+
+    # Resolve the config entry owning this entity when registered in the entity registry
+    entity_registry = er.async_get(hass)
+    if (entity_entry := entity_registry.async_get(entity_id)) and entity_entry.config_entry_id:
+        if entity_entry.platform != DOMAIN:
+            raise ServiceValidationError(f"Entity {entity_id} does not belong to domain {DOMAIN}.")
+        resolved_entry = hass.config_entries.async_get_entry(entity_entry.config_entry_id)
+        if resolved_entry is not None:
+            entry = resolved_entry
 
     # 2. Secure retrieval of the state object
     state_obj = hass.states.get(entity_id)
@@ -65,11 +77,15 @@ async def async_handle_zone_bypass(
 
     try:
         # index + 1 because the API expects 1-based indexing for zones
-        await client.async_set_zone_bypass(zone_id=zone_index + 1, pin=pin, bypass=bypass_target)
-        LOGGER.info("Success executing bypass for zone %s (index %s, target: %s)", entity_id, zone_index, bypass_target)
+        xml = await client.async_set_zone_bypass(zone_id=zone_index + 1, pin=pin, bypass=bypass_target)
+        if "cmdSent" not in xml:
+            LOGGER.warning("Zone bypass for %s may have been rejected. Response: %s", entity_id, xml)
+        else:
+            LOGGER.info(
+                "Success executing bypass for zone %s (index %s, target: %s)", entity_id, zone_index, bypass_target
+            )
 
-        # Force immediate data refresh after executing the scenario, so that the state of entities is updated
-        # await coordinator.async_request_refresh()
+        # Force immediate data refresh after executing the bypass so entity states update
         await coordinator.async_refresh()
 
     except Exception as err:
