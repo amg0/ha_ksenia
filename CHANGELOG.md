@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.7](https://github.com/amg0/ha_ksenia/compare/v0.6.6...v0.6.7) (2026-11-08)
+
+
+### Features
+
+* move to probatio ([3cb4e0f](https://github.com/amg0/ha_ksenia/commit/3cb4e0ff9c943accb45faa726c9820b00faabaef))
+
 ## [0.6.6](https://github.com/amg0/ha_ksenia/compare/v0.6.5...v0.6.6) (2026-11-07)
 
 
