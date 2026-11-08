@@ -49,8 +49,10 @@ markers = [
 filterwarnings = [
     # Treat warnings as errors to catch issues early
     "error",
-    # Ignore specific warnings from third-party libraries as needed
-    # "ignore:.*custom_components.* is using deprecated.*:DeprecationWarning",
+    # Ignore aiohttp NotAppKeyWarning in HA 2026.10 core http server
+    "ignore::aiohttp.web_exceptions.NotAppKeyWarning",
+    # Ignore HA core aiohttp ClientSession monkey-patch deprecation warning in aiohttp 3.12+
+    "ignore:Setting custom ClientSession.* attribute is discouraged:DeprecationWarning",
 ]
 
 [tool.coverage.run]

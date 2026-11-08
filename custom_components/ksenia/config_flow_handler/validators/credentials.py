@@ -13,7 +13,7 @@ from custom_components.ksenia.api.client import (
     KseniaLaresApiClientCommunicationError,
     ZoneDescription,
 )
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -50,7 +50,7 @@ async def validate_credentials(
         port=port,
         username=username,
         password=password,
-        session=async_create_clientsession(hass),
+        session=async_get_clientsession(hass),
     )
     return await client.async_test_connection()
 

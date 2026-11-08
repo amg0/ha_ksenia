@@ -15,6 +15,7 @@ const translations = {
   en: {
     editor: {
       title: "Card Title (Optional)",
+      entity: "Ksenia Panel / Connectivity Entity (Optional)",
       zone_columns: "Number of columns for zones (default 4)",
       partition_columns: "Number of columns for partitions (default 4)",
       button_columns: "Number of columns for buttons (default 4)",
@@ -55,6 +56,7 @@ const translations = {
   fr: {
     editor: {
       title: "Titre de la carte (Optionnel)",
+      entity: "Capteur de connectivite Ksenia (Optionnel)",
       zone_columns: "Nombre de colonnes pour les zones (défaut 4)",
       partition_columns: "Nombre de colonnes pour les partitions (défaut 4)",
       button_columns: "Nombre de colonnes pour les scénarios (défaut 4)",
@@ -310,6 +312,7 @@ class KseniaLaresCard extends LitElement {
   static getStubConfig() {
     return {
       title: "Ksenia Lares Panel",
+      entity: "",
       zone_columns: 4,
       partition_columns: 4,
       button_columns: 4,
@@ -349,14 +352,25 @@ class KseniaLaresCard extends LitElement {
     const partitionSensors = [];
     const buttonEntities = [];
 
+    const targetDeviceId = this.config.entity ? this.hass.entities?.[this.config.entity]?.device_id : null;
+
     for (const entityId in this.hass.states) {
       const stateObj = this.hass.states[entityId];
       const attr = stateObj.attributes;
 
       if (!attr || !attr.integration || attr.integration.toLowerCase() !== "ksenia") continue;
 
+      if (targetDeviceId) {
+        const entityReg = this.hass.entities?.[entityId];
+        if (entityReg && entityReg.device_id && entityReg.device_id !== targetDeviceId) {
+          continue;
+        }
+      }
+
       if (attr.device_class === "connectivity") {
-        connectionEntity = stateObj;
+        if (!this.config.entity || entityId === this.config.entity) {
+          connectionEntity = stateObj;
+        }
       } else if (entityId.startsWith("binary_sensor.")) {
         if (
           attr.device_class === "door" ||
@@ -642,6 +656,16 @@ class KseniaLaresCardEditor extends LitElement {
 
     const schema = [
       { name: "title", selector: { text: {} } },
+      {
+        name: "entity",
+        selector: {
+          entity: {
+            domain: "binary_sensor",
+            device_class: "connectivity",
+            integration: "ksenia",
+          },
+        },
+      },
       { name: "partition_columns", selector: { number: { min: 1, max: 8, step: 1 } } },
       { name: "button_columns", selector: { number: { min: 1, max: 8, step: 1 } } },
       { name: "zone_columns", selector: { number: { min: 1, max: 8, step: 1 } } },

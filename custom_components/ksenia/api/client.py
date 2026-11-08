@@ -160,7 +160,7 @@ class KseniaLaresApiClientAuthenticationError(
 
 
 @dataclass(slots=True)
-class KSeniaLaresScenario:
+class KseniaLaresScenario:
     """Représentation d'un scénario Ksenia Lares."""
 
     id: int
@@ -402,7 +402,7 @@ class KseniaLaresApiClient:
 
         return statuses
 
-    async def async_get_scenarios(self) -> list[KSeniaLaresScenario]:
+    async def async_get_scenarios(self) -> list[KseniaLaresScenario]:
         """
         Fetch available scenarios from the Ksenia controller.
 
@@ -431,7 +431,7 @@ class KseniaLaresApiClient:
         opt_root = ET.fromstring(opt_xml)  # noqa: S314
         options = opt_root.findall("scenario")
 
-        scenarios: list[KSeniaLaresScenario] = []
+        scenarios: list[KseniaLaresScenario] = []
         for idx, name in enumerate(descriptions):
             if idx >= len(options):
                 break
@@ -443,7 +443,7 @@ class KseniaLaresApiClient:
             nopin = (nopin_el.text or "").strip().upper() if nopin_el is not None else ""
 
             if abil == "TRUE":
-                scenarios.append(KSeniaLaresScenario(name=name, id=idx, nopin=nopin == "TRUE"))
+                scenarios.append(KseniaLaresScenario(name=name, id=idx, nopin=nopin == "TRUE"))
 
         return scenarios
 
