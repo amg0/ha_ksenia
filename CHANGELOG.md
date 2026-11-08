@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.6](https://github.com/amg0/ha_ksenia/compare/v0.6.5...v0.6.6) (2026-11-07)
+
+
+### Bug Fixes
+
+* cosmetic test ([d150d2f](https://github.com/amg0/ha_ksenia/commit/d150d2fdb72c9f1597c8f500cfc799f0cf9a23ed))
+* improve zone index alignment, service validation, and lovelace card ([13f84f4](https://github.com/amg0/ha_ksenia/commit/13f84f491b637e2c30bd33be4251ebe0ed847fef))
+
 ## [0.6.5](https://github.com/amg0/ha_ksenia/compare/v0.6.4...v0.6.5) (2026-11-03)
 
 
