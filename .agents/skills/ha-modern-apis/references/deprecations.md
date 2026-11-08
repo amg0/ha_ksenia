@@ -22,7 +22,7 @@ ones: [`ha-testing`](../../ha-testing/SKILL.md#two-settings-that-surprise-people
 
 ## Schema validation — `voluptuous` replaced by `probatio`
 
-The core validates with `probatio`, a drop-in replacement with the same API
+The core validates with [`probatio`](https://probatio.frenck.dev/llms.txt), a drop-in replacement with the same API
 (`Schema`, `Required`, `Optional`, `All`, `Coerce`, `Range`, …). `async_show_form`, `add_suggested_values_to_schema`
 and service registration are typed against `probatio.Schema`, so a `voluptuous` schema fails type checking.
 This blueprint writes `import probatio` and `probatio.Schema(...)`; `probatio` ships with Home Assistant and needs no

@@ -57,7 +57,7 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> probatio.Schem
         defaults: Optional dictionary of default values to pre-populate the form.
 
     Returns:
-        Voluptuous schema for host + credentials input.
+        Probatio schema for host + credentials input.
 
     """
     defaults = defaults or {}
@@ -111,7 +111,7 @@ def get_reconfigure_schema(username: str) -> probatio.Schema:
         username: Current username to pre-fill in the form.
 
     Returns:
-        Voluptuous schema for reconfiguration.
+        Probatio schema for reconfiguration.
 
     """
     return probatio.Schema(
@@ -143,7 +143,7 @@ def get_reauth_schema(username: str) -> probatio.Schema:
         username: Current username to pre-fill in the form.
 
     Returns:
-        Voluptuous schema for reauthentication.
+        Probatio schema for reauthentication.
 
     """
     return probatio.Schema(

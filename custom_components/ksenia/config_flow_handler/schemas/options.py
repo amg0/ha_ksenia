@@ -24,7 +24,7 @@ def get_options_schema(defaults: Mapping[str, Any] | None = None) -> probatio.Sc
         defaults: Optional dictionary of current option values.
 
     Returns:
-        Voluptuous schema for options configuration.
+        Probatio schema for options configuration.
 
     """
     defaults = defaults or {}

@@ -93,16 +93,18 @@ Every step method must return one of these result types (see [Data Entry Flow do
 
 ### Form Schemas
 
-**Simple fields** - Use voluptuous: `vol.Required("field"): str`, `vol.Optional("field", default=value): int`
+Schemas are written with [Probatio](https://probatio.frenck.dev/llms.txt) (`import probatio`), which replaced `voluptuous` in Home Assistant 2026.9+.
+
+**Simple fields** - Use probatio: `probatio.Required("field"): str`, `probatio.Optional("field", default=value): int`
 
 **Rich UI** - Use selectors for better UX: `TextSelector`, `NumberSelector`, `EntitySelector`, etc. (see [Selector docs](https://developers.home-assistant.io/docs/data_entry_flow_index#show-form))
 
-**Sections** - Group with `section()`: `vol.Required("advanced"): section(vol.Schema({...}), {"collapsed": True})`
+**Sections** - Group with `section()`: `probatio.Required("advanced"): section(probatio.Schema({...}), {"collapsed": True})`
 
 **Pre-filling:**
 
-- Default values: `vol.Optional("field", default="value")`
-- Suggested values: `vol.Optional("field", description={"suggested_value": "value"})`
+- Default values: `probatio.Optional("field", default="value")`
+- Suggested values: `probatio.Optional("field", description={"suggested_value": "value"})`
 - Merge from existing: `self.add_suggested_values_to_schema(schema, entry.options)`
 
 **Read-only fields** - Set `read_only=True` in selector config (e.g., `EntitySelectorConfig(read_only=True)`)

@@ -348,10 +348,11 @@ python3 -m script.scaffold config_flow_oauth2     # OAuth2 flow
 **Config flow:**
 
 - Implement in `config_flow_handler/` package
+- Use `probatio` (`import probatio`) for all schema validation — `voluptuous` was replaced by `probatio` in Home Assistant 2026.9+ (reference: <https://probatio.frenck.dev/llms.txt>)
 - Support user setup, discovery, reauth, reconfigure
 - Always set unique_id for discovered entries
 
-See `.github/instructions/blueprint.config_flow.instructions.md` for comprehensive patterns.
+See `.agents/instructions/blueprint.config_flow.instructions.md` for comprehensive patterns.
 
 **Service actions:**
 
@@ -673,6 +674,7 @@ See `.github/copilot-instructions.md` for detailed workflow guidance.
 ## Additional Resources
 
 - [Home Assistant Developer Docs](https://developers.home-assistant.io/) - Primary reference
+- [Probatio LLM Documentation](https://probatio.frenck.dev/llms.txt) - Official schema validation library (replaced Voluptuous in HA 2026.9+)
 - [Integration Quality Scale](https://developers.home-assistant.io/docs/integration_quality_scale_index)
 - [Architecture Docs](https://developers.home-assistant.io/docs/architecture_index)
 - [Ruff Rules](https://docs.astral.sh/ruff/rules/) - Linter documentation
