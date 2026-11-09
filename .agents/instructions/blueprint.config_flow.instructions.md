@@ -55,7 +55,7 @@ inferred ID is wrong whenever one step method calls another.
 
 ### Form Schemas
 
-Schemas are written with [Probatio](https://probatio.frenck.dev/llms.txt) (`import probatio`), the validation library Home Assistant uses — not voluptuous.
+Schemas are written with Probatio (`import probatio`), the validation library Home Assistant uses — not voluptuous.
 
 **Simple fields** - `probatio.Required("field"): str`, `probatio.Optional("field", default=value): int`
 
