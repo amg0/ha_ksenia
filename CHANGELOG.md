@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.8](https://github.com/amg0/ha_ksenia/compare/v0.6.7...v0.6.8) (2026-11-09)
+
+
+### Bug Fixes
+
+* improve client session reuse, scenario naming, card device filtering, and add tests ([bdbb612](https://github.com/amg0/ha_ksenia/commit/bdbb612b6b792be57d580c97db7ca638f2a85d38))
+
 ## [0.6.7](https://github.com/amg0/ha_ksenia/compare/v0.6.6...v0.6.7) (2026-11-08)
 
 
