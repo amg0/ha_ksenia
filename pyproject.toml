@@ -53,6 +53,8 @@ filterwarnings = [
     "ignore::aiohttp.web_exceptions.NotAppKeyWarning",
     # Ignore HA core aiohttp ClientSession monkey-patch deprecation warning in aiohttp 3.12+
     "ignore:Setting custom ClientSession.* attribute is discouraged:DeprecationWarning",
+    # Ignore HA core aiohttp web.Application subclassing deprecation warning in aiohttp 3.14+
+    "ignore:Inheritance class HomeAssistantApplication from web.Application is discouraged:DeprecationWarning",
 ]
 
 [tool.coverage.run]
