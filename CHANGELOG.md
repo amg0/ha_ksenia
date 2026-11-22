@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.7.0](https://github.com/amg0/ha_ksenia/compare/v0.6.7...v0.7.0) (2026-11-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* migrate to Home Assistant 2026.11 and pytest-homeassistant
+
+### Bug Fixes
+
+* improve client session reuse, scenario naming, card device filtering, and add tests ([bdbb612](https://github.com/amg0/ha_ksenia/commit/bdbb612b6b792be57d580c97db7ca638f2a85d38))
+
+
+### Maintenance
+
+* migrate to Home Assistant 2026.11 and pytest-homeassistant ([882dd87](https://github.com/amg0/ha_ksenia/commit/882dd87a4b71b333d4b4f0945f5d240aebf9cf9c))
+
 ## [0.6.7](https://github.com/amg0/ha_ksenia/compare/v0.6.6...v0.6.7) (2026-11-08)
 
 
