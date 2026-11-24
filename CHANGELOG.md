@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.1](https://github.com/amg0/ha_ksenia/compare/v0.7.0...v0.7.1) (2026-11-24)
+
+
+### 🎉 What's new
+
+* blueprint sync fixes ([2c14c0b](https://github.com/amg0/ha_ksenia/commit/2c14c0b3c2170cff1d79ef25cb25ca80827b1a68))
+
+
+### 🐛 Fixed
+
+* remove some files ([6c8486d](https://github.com/amg0/ha_ksenia/commit/6c8486d959be05dd82310edd3e1dc71da32d881f))
+
 ## [0.7.0](https://github.com/amg0/ha_ksenia/compare/v0.6.7...v0.7.0) (2026-11-22)
 
 
