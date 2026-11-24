@@ -16,9 +16,13 @@ Uncomment and customize these badges if you want to use them:
 [![Discord][discord-shield]][discord]
 -->
 
+<!-- ha-marketplace:exclude-start -->
+
 **✨ Develop in the cloud:** Want to contribute or customize this integration? Open it directly in GitHub Codespaces - no local setup required !
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/amg0/ha_ksenia?quickstart=1)
+
+<!-- ha-marketplace:exclude-end -->
 
 ## ✨ Features
 
@@ -45,6 +49,8 @@ Home Assistant custom integration for KSenia Lares 3.0 16IP, 48IP or 128IP model
 
 **Prerequisites:** This integration requires [HACS](https://hacs.xyz/) (Home Assistant Community Store) to be installed.
 
+<!-- ha-marketplace:exclude-start -->
+
 Click the button below to open the integration directly in HACS:
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jpawlowski&repository=ha_ksenia&category=integration)
@@ -67,6 +73,7 @@ If you prefer not to use HACS:
 3. Restart Home Assistant
 
 </details>
+<!-- ha-marketplace:exclude-end -->
 
 ### Step 2: Add and Configure the Integration
 
@@ -447,6 +454,8 @@ If your device is not responding:
 3. Verify the device is powered on
 4. Check the integration diagnostics (Settings → Devices & Services → Ksenia Lares → 3 dots → Download diagnostics)
 
+<!-- ha-marketplace:exclude-start -->
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please open an issue or pull request if you have suggestions or improvements.
@@ -530,6 +539,7 @@ You'll need these installed locally:
 > Both Codespaces and local DevContainer provide the exact same experience. The only difference is where the container runs (GitHub's cloud vs. your machine).
 
 </details>
+<!-- ha-marketplace:exclude-end -->
 
 ---
 

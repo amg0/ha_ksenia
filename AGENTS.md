@@ -27,15 +27,46 @@ This is a Home Assistant custom integration that was generated from a blueprint 
 | Config flow, options, reauth, or discovery    | [.agents/skills/ha-config-flow/SKILL.md](.agents/skills/ha-config-flow/SKILL.md)             | [.github/instructions/blueprint.config_flow.instructions.md](.github/instructions/blueprint.config_flow.instructions.md)         |
 | Debugging coordinator or runtime failures     | [.agents/skills/ha-coordinator-debug/SKILL.md](.agents/skills/ha-coordinator-debug/SKILL.md) | [.github/instructions/blueprint.coordinator.instructions.md](.github/instructions/blueprint.coordinator.instructions.md)         |
 | Updating translations or icons                | [.agents/skills/ha-translations/SKILL.md](.agents/skills/ha-translations/SKILL.md)           | [.github/instructions/blueprint.translations.instructions.md](.github/instructions/blueprint.translations.instructions.md)       |
+| Designing states, attributes, options, and UI | [.agents/skills/ha-user-experience/SKILL.md](.agents/skills/ha-user-experience/SKILL.md)     | —                                                                                                                                |
 | Writing or fixing tests                       | [.agents/skills/ha-testing/SKILL.md](.agents/skills/ha-testing/SKILL.md)                     | [.github/instructions/blueprint.tests.instructions.md](.github/instructions/blueprint.tests.instructions.md)                     |
 | Auditing integration quality                  | [.agents/skills/ha-quality-review/SKILL.md](.agents/skills/ha-quality-review/SKILL.md)       | —                                                                                                                                |
 | Verifying current Home Assistant APIs         | [.agents/skills/ha-modern-apis/SKILL.md](.agents/skills/ha-modern-apis/SKILL.md)             | —                                                                                                                                |
 | Handling breaking changes                     | [.agents/skills/ha-breaking-changes/SKILL.md](.agents/skills/ha-breaking-changes/SKILL.md)   | —                                                                                                                                |
 | Recording or superseding decisions            | [.agents/skills/blueprint-decisions/SKILL.md](.agents/skills/blueprint-decisions/SKILL.md)   | —                                                                                                                                |
+| Lessons from bugs and corrections             | [.agents/skills/blueprint-lessons/SKILL.md](.agents/skills/blueprint-lessons/SKILL.md)       | —                                                                                                                                |
 | Cutting releases or writing release notes     | [.agents/skills/ha-release/SKILL.md](.agents/skills/ha-release/SKILL.md)                     | —                                                                                                                                |
 | Maintaining blueprint tooling                 | [.agents/skills/blueprint-tooling/SKILL.md](.agents/skills/blueprint-tooling/SKILL.md)       | —                                                                                                                                |
 | Scaffolding an integration from the blueprint | [.agents/skills/blueprint-scaffold/SKILL.md](.agents/skills/blueprint-scaffold/SKILL.md)     | —                                                                                                                                |
 | Importing an existing integration             | [.agents/skills/blueprint-import/SKILL.md](.agents/skills/blueprint-import/SKILL.md)         | —                                                                                                                                |
+
+### Agent plugins
+
+Working habits that a developer may want to turn off ship as plugins from
+[ha-custom-integration-skills](https://github.com/jpawlowski/ha-custom-integration-skills), pinned to one tag in
+`.claude/settings.json`, `.github/copilot/settings.json` and `.codex/config.toml`; `script/setup/bootstrap` installs
+them. Interviewing and planning are `haci-grill` and `haci-planning` (plugin `haci-plan`), the review pass is
+`haci-change-review` (`haci-review`), testing is `haci-testing` (`haci-quality`), and backlog triage is
+`haci-issue-triage` with the autonomous `haci-issues` run (`haci-triage`, off by default). A skill's rules reach the
+files they govern as `.agents/instructions/haci.*.instructions.md`, which `script/haci-vendor` copies from the pinned tag
+— never edit them by hand.
+A plugin that is turned off leaves its task to the developer's own way of doing it. Those skills know no repository;
+this one gives them:
+
+| They ask for      | Here                                                                                                     |
+| ----------------- | -------------------------------------------------------------------------------------------------------- |
+| the gates         | `script/lint`, `script/type-check`, `script/test`, `script/hassfest`; check mode `script/check`          |
+| a second review   | `script/second-review --brief <the skill's references/reviewer-brief.md>`                                |
+| the scratch path  | `.agents/scratch/` — gitignored, plans in `.agents/scratch/plans/`                                       |
+| decision records  | `docs/development/decisions/`, with [`blueprint-decisions`](.agents/skills/blueprint-decisions/SKILL.md) |
+| breaking changes  | _Breaking Changes_ below                                                                                 |
+| posting on GitHub | [`AI_POLICY.md`](AI_POLICY.md)                                                                           |
+
+**Critical files**, where a review miss costs most: everything on the breaking-changes list and the config entry's
+`VERSION` and migration; the config flow's auth and reauth steps, diagnostics and their redaction, anything that logs a
+payload; `manifest.json` → `requirements`; `.agents/hooks/`, the agent settings, `.devcontainer/`,
+`.vscode/tasks.json`, `.pre-commit-config.yaml`, `.github/workflows/`, `.github/actions/`, `script/push-gate`, the
+release scripts and `release-please-config.json`; and text that governs what an agent may do — this file, `CLAUDE.md`,
+`AI_POLICY.md`.
 
 **Key directories:**
 
@@ -48,9 +79,20 @@ This is a Home Assistant custom integration that was generated from a blueprint 
 
 **Always use the project's scripts** — do NOT craft your own `hass`, `pip`, `pytest`, or similar commands. The scripts handle environment setup, virtual environments, port management, and cleanup that raw commands miss. Agents that bypass scripts frequently break.
 
-**Devcontainer CLI tools:** The devcontainer provides common agent-facing CLI tools including `bat`, `delta`/`git-delta`, `eza`, `fd`/`fdfind`, `fzf`, `http`/`httpie`, `hyperfine`, `ipython`, `jq`, `jo`, `mlr`/`miller`, `rg`/`ripgrep`, `shellcheck`, `shfmt`, `sponge`, `sqlite3`, `tree`, `yq`, and `yamllint`. Prefer these explicit container tools over assuming a VS Code extension exposes an equivalent CLI on `PATH`.
+**CLI tools everywhere:** `mise.toml` pins Python, `uv`, `fd`, `jq`, `rg`, `shellcheck`, `shfmt` and `yq`
+for the dev container, CI, a local machine and cloud sessions alike, and every `script/*` applies `mise env` itself —
+those tools and the Home Assistant venv, which `mise.toml` names, ahead of everything else on `PATH`. A tool the
+scripts need goes into `mise.toml` — this integration's own into `.config/mise/conf.d/project.toml`, which template
+sync leaves alone — not into the dev container's apt list. `yq` is the Mike Farah variant (`yq eval` syntax). `yq -p json -o props`
+flattens JSON into greppable `path = value` lines — `script/ha diagnostics | yq -p json -o props | rg <key>` gives
+the value and its path without pulling the whole document into context.
 
-**CLI compatibility notes:** Some commands are available via compatibility aliases because Debian package names differ from what agents often expect. Prefer `bat`, `fd`, `git-delta`, `httpie`, `ipython`, `miller`, and `ripgrep` as stable spellings. `yq` is installed as the Mike Farah variant, so standard `yq eval`/`yq e` syntax is expected.
+**Only in the dev container:** `fzf`, `hyperfine` and `mlr` (from `mise.devcontainer.toml`), `http`, `ipython`,
+`jo`, `sponge` and `sqlite3` (from apt). The scripts take `yamllint` from the venv. `git-delta`, `httpie` and `miller`
+also resolve there. Outside the container, check before relying on any of them.
+
+`bat`, `delta`, `eza` and `tree` are installed for the developer's terminal, not for you — they format output rather
+than reduce it, and buy you nothing.
 
 **Start Home Assistant:**
 
@@ -99,7 +141,7 @@ If a developer requests something that contradicts these instructions:
 
 1. **Clarify the intent** - Ask if they want you to deviate from the documented guidelines
 2. **Confirm understanding** - Restate what you understood to avoid misinterpretation
-3. **Suggest instruction updates** - If this represents a permanent change in approach, offer to update these instructions
+3. **Suggest instruction updates** - If it reflects a permanent change of approach — a correction given a second time, or with "always", "never" or "from now on" — offer to record it in the repository, never only in your own memory, which a parallel session or another agent would not see ([`blueprint-lessons`](.agents/skills/blueprint-lessons/SKILL.md)).
 4. **Proceed once confirmed** - Follow the developer's explicit direction after clarification
 
 ### Maintaining These Instructions
@@ -125,7 +167,12 @@ If a developer requests something that contradicts these instructions:
 2. **Developer Documentation** - Architecture and design decisions (`docs/development/`)
 3. **User Documentation** - End-user guides (`docs/user/`)
 
-**AI Planning:** Use `.ai-scratch/` for temporary notes (never committed)
+**AI Planning:** Use `.agents/scratch/` for temporary notes (never committed)
+
+**Decisions** are records in `docs/development/decisions/`, one file each. Read its `README.md` index before a choice
+that is hard to reverse, and a record only when its decision is the one at hand — never load the records by a glob or
+an import. What a decision obliges lives as a rule in an instructions file or here, ending in a `Source:` line
+([`blueprint-decisions`](.agents/skills/blueprint-decisions/SKILL.md)).
 
 **Rules:**
 
@@ -136,19 +183,29 @@ If a developer requests something that contradicts these instructions:
 
 See `.github/copilot-instructions.md` for detailed documentation strategy.
 
-### Session and Context Management
+### Commits, branches and pull requests
 
-**Commit suggestions:**
-
-When a task completes and the developer moves to a new topic, suggest committing changes. Offer a commit message based on the work done.
-
-**Commit rules (CRITICAL):**
-
-- **Never commit automatically** — only commit when the developer explicitly requests it
-- A previous commit request is NOT a standing permission; each commit requires a fresh explicit instruction
-- **Never ask about pushing** — the developer always handles `git push` themselves; do not offer or suggest it
-
-**Commit message format:** Follow [Conventional Commits](https://www.conventionalcommits.org/) — see `.github/instructions/blueprint.commit-message.instructions.md` for full conventions, types, scopes, and examples.
+- **Never commit automatically** — only on an explicit request. A previous request is not standing permission; each
+  commit needs a fresh instruction.
+- **Push only when asked** — for a push or a pull request. Otherwise never ask about pushing; the developer handles
+  `git push`.
+- **One branch per change**, named `<type>/<short-kebab>` (`feat/release-zip-asset`), branched from current `main`;
+  never commit on `main`. Do not rename a branch whose pull request is open, and do not reuse one after it was merged.
+- **One logical change per pull request.** An unrelated fix, a drive-by refactor or a dependency bump is a pull request
+  of its own: a squash merge makes each pull request one changelog line and one unit to revert.
+- **Force push only with `--force-with-lease`**, only on your own branch that nobody else has pulled, and only when
+  the developer asked for the push.
+- **Work reaches `main` through a pull request**, where `script/setup/github` applied the `main` ruleset. Squash is
+  the default, and the pull request's title becomes the commit, so it follows the same format as a commit subject.
+  Rebase only a pull request whose commits each pass the _Check each commit_ step, and only when the developer asks.
+- **A pull request still being worked on is a draft** (`gh pr create --draft`). CI skips drafts, so pushes to it cost
+  no Actions minutes; mark it ready (`gh pr ready`) once `script/lint`, `script/type-check` and `script/test` pass
+  locally — that is what starts the checks.
+- Updating a branch from `main`, conflicts, splitting mixed work and stacked pull requests:
+  [`ha-release/references/branches-and-pull-requests.md`](.agents/skills/ha-release/references/branches-and-pull-requests.md).
+- When a task completes and the developer moves on, offer a commit message based on the work done.
+- Format: [Conventional Commits](https://www.conventionalcommits.org/), enforced by the commitlint hook — see
+  `.github/instructions/blueprint.commit-message.instructions.md`.
 
 ## Custom Integration Flexibility
 
@@ -167,7 +224,7 @@ When a task completes and the developer moves to a new topic, suggest committing
 1. Research available libraries (PyPI, GitHub)
 2. Evaluate: Maintained? Async? Well-documented? Dependency footprint?
 3. Consider protocol: Simple REST → aiohttp; Complex OAuth2 → library; Standard (MQTT) → industry library
-4. Document decision in `docs/development/DECISIONS.md`
+4. Record the outcome as a decision record in [`docs/development/decisions/`](docs/development/decisions/README.md)
 
 **Quality Scale expectations:**
 
@@ -250,7 +307,7 @@ This integration uses the following identifiers consistently:
 - Each platform in own directory with `__init__.py`
 - One entity class per file for clarity
 - Individual entity classes in separate files (e.g., `air_quality.py`)
-- Use `EntityDescription` dataclasses for static entity metadata
+- Entity metadata comes from `EntityDescription` + `translation_key` — never a hardcoded `name=` or `icon=`. The narrow exceptions are listed in `blueprint.entities`.
 
 **Code organization principles:**
 
@@ -546,6 +603,30 @@ After auto-fixes are applied, only manually edit files for errors that **remain 
    - Ask the developer specific questions about what's unclear
    - Never continue searching indefinitely without making progress
 
+**Commands you run yourself never wait for an answer** — nobody is there to give it, and the session hangs:
+
+- Pass the flag that skips the question: `--yes`, `--force`, `-y`. The scripts here that ask for confirmation take
+  one and stop without a terminal instead of waiting.
+- `git commit -m` or `-F`, never an editor; `sudo -n`, never a password prompt.
+- Start `script/develop` in the background — it runs until stopped.
+- Your shell reads the developer's profile, so a core command may be an alias: `cp` can be `cp -i`, `cat` can be
+  `bat`. Write `command cp`, `command mv`, `command rm` and `command` before any command whose output you parse.
+  Scripts run as files are unaffected, so they need no such prefix.
+
+## Outside the dev container
+
+The dev container is one way in, not a requirement. Every agent runs `.agents/hooks/session-start.sh` when a session
+starts — Claude Code and Copilot through `.claude/settings.json`, Codex through `.codex/hooks.json`, OpenCode through
+its plugin:
+
+- **In a Claude Code cloud session** it installs mise and runs `script/setup/bootstrap` in the background. Before
+  `script/test`, `script/lint`, `script/type-check` or `script/develop`, wait until `.local/bootstrap.status` reads
+  `done`; `.local/bootstrap.log` has the progress and, on `failed`, the reason.
+- **On someone's own machine** it installs the pinned tools when mise is present and only reports a checkout that still
+  needs `script/setup/bootstrap`. Run that yourself when the report comes — never install mise there unasked.
+- **A cloud environment that asks for an install script** — Codex cloud writes one from this repository — uses
+  `script/setup/toolchain --install-mise && script/setup/bootstrap`. Nothing else needs configuring.
+
 ## Testing
 
 **Test structure:**
@@ -610,8 +691,12 @@ See `.github/instructions/blueprint.tests.instructions.md` for comprehensive tes
 
 **Large refactoring (>10 files or architectural changes):**
 
-- Propose a plan first before starting implementation
+- Propose a plan first before starting implementation (`haci-planning`, where the plugin is on)
 - Get explicit confirmation from developer
+
+**A fixed bug stays fixed.** Name its class, look for the same mistake elsewhere — other platforms, entities, paths —
+and fix those in the same change or list them; the commit body names the root cause. Where the lesson goes so the next
+agent cannot repeat it: [`blueprint-lessons`](.agents/skills/blueprint-lessons/SKILL.md).
 
 **Important: Do NOT create or modify tests unless explicitly requested.** Focus on implementing functionality. The developer decides when and if tests are needed.
 

@@ -250,7 +250,7 @@ Typically read `AGENTS.md` for project overview and may use path-specific instru
 - Put detailed patterns in path-specific `.instructions.md` files
 - Update instructions when patterns change or new conventions emerge
 - Remove outdated rules to prevent bloat
-- Document major architectural decisions in `DECISIONS.md`
+- Document major architectural decisions in [`docs/development/decisions/`](./decisions/README.md)
 
 ### Using GitHub Copilot Coding Agent
 
@@ -288,7 +288,7 @@ See [`COPILOT_AGENT.md`](./COPILOT_AGENT.md) for detailed usage instructions, ex
 
 ## Key Design Decisions
 
-See [DECISIONS.md](./DECISIONS.md) for architectural and design decisions made during development.
+See [decisions/README.md](./decisions/README.md) for architectural and design decisions made during development.
 
 ## Extension Points
 
